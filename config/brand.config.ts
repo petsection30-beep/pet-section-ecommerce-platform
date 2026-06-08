@@ -16,6 +16,7 @@ export type BrandConfig = {
     instagram?: string
     facebook?: string
     tiktok?: string
+    whatsapp?: string
   }
   codEnabled: boolean
   easypaisaEnabled: boolean

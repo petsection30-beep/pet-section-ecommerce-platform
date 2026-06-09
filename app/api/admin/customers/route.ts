@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth/session"
 
+const SELECT = {
+  id:        true,
+  name:      true,
+  email:     true,
+  createdAt: true,
+  orders:    { select: { total: true } },
+} as const
+
+type CustomerRow = Awaited<ReturnType<typeof prisma.user.findMany<{ select: typeof SELECT }>>>[number]
+
 export async function GET(req: NextRequest) {
   const session = await requireAdmin()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -11,31 +21,22 @@ export async function GET(req: NextRequest) {
   const page  = Math.max(1, Number(searchParams.get("page") ?? 1))
   const limit = 20
 
-  const where = {
-    role: "CUSTOMER" as const,
-    ...(q ? {
-      OR: [
+  const nameEmailFilter = q
+    ? { OR: [
         { name:  { contains: q, mode: "insensitive" as const } },
         { email: { contains: q, mode: "insensitive" as const } },
-      ],
-    } : {}),
-  }
+      ] }
+    : {}
 
   const [customers, total] = await Promise.all([
     prisma.user.findMany({
-      where,
+      where:   { role: "CUSTOMER", ...nameEmailFilter },
       orderBy: { createdAt: "desc" },
       skip:    (page - 1) * limit,
       take:    limit,
-      select: {
-        id:        true,
-        name:      true,
-        email:     true,
-        createdAt: true,
-        orders:    { select: { total: true } },
-      },
-    }),
-    prisma.user.count({ where }),
+      select:  SELECT,
+    }) as Promise<CustomerRow[]>,
+    prisma.user.count({ where: { role: "CUSTOMER", ...nameEmailFilter } }),
   ])
 
   const data = customers.map((c) => ({

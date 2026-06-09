@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Prisma, OrderStatus } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth/session"
+import type { OrderStatus } from "@prisma/client"
 
 export async function GET(req: NextRequest) {
   const session = await requireAdmin()
@@ -12,8 +12,9 @@ export async function GET(req: NextRequest) {
   const page   = Math.max(1, Number(searchParams.get("page") ?? 1))
   const limit  = 20
 
-  const where: Prisma.OrderWhereInput = {}
-  if (status) where.status = status as OrderStatus
+  const where = {
+    ...(status ? { status: status as OrderStatus } : {}),
+  }
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({

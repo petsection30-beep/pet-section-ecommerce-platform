@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
@@ -13,29 +12,23 @@ export async function GET(req: NextRequest) {
     const page     = Math.max(1, Number(searchParams.get("page") ?? 1))
     const limit    = Math.min(48, Math.max(1, Number(searchParams.get("limit") ?? 24)))
 
-    const where: Prisma.ProductWhereInput = { isActive: true }
-
-    if (category) {
-      where.category = { slug: category }
-    }
-    if (q) {
-      where.OR = [
-        { name:        { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-      ]
-    }
-    if (inStock === "true") {
-      where.variants = { some: { stock: { gt: 0 } } }
-    }
-    if (featured === "true") {
-      where.isFeatured = true
+    const where = {
+      isActive: true,
+      ...(category ? { category: { slug: category } } : {}),
+      ...(q ? {
+        OR: [
+          { name:        { contains: q, mode: "insensitive" as const } },
+          { description: { contains: q, mode: "insensitive" as const } },
+        ],
+      } : {}),
+      ...(inStock === "true"  ? { variants: { some: { stock: { gt: 0 } } } } : {}),
+      ...(featured === "true" ? { isFeatured: true } : {}),
     }
 
-    const orderBy: Record<string, string> =
-      sort === "price-asc"  ? { price: "asc" }  :
-      sort === "price-desc" ? { price: "desc" } :
-      sort === "top-rated"  ? { createdAt: "desc" } :
-                              { createdAt: "desc" }
+    const orderBy =
+      sort === "price-asc"  ? { price: "asc"  as const } :
+      sort === "price-desc" ? { price: "desc" as const } :
+                              { createdAt: "desc" as const }
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({

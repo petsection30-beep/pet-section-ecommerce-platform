@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth/session"
 
@@ -12,12 +11,14 @@ export async function GET(req: NextRequest) {
   const page  = Math.max(1, Number(searchParams.get("page") ?? 1))
   const limit = 20
 
-  const where: Prisma.UserWhereInput = { role: "CUSTOMER" }
-  if (q) {
-    where.OR = [
-      { name:  { contains: q, mode: "insensitive" } },
-      { email: { contains: q, mode: "insensitive" } },
-    ]
+  const where = {
+    role: "CUSTOMER" as const,
+    ...(q ? {
+      OR: [
+        { name:  { contains: q, mode: "insensitive" as const } },
+        { email: { contains: q, mode: "insensitive" as const } },
+      ],
+    } : {}),
   }
 
   const [customers, total] = await Promise.all([

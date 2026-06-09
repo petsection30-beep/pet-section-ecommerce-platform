@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth/session"
-import type { OrderStatus } from "@prisma/client"
+
+type OrderStatus =
+  | "PENDING_COD" | "PENDING_VERIFICATION" | "CONFIRMED"
+  | "SHIPPED"     | "DELIVERED"            | "REJECTED" | "CANCELLED"
 
 export async function GET(req: NextRequest) {
   const session = await requireAdmin()

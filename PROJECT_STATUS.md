@@ -216,6 +216,8 @@ New wallet order arrives with TXN ID
 
 ### Authentication Flow
 
+
+
 ```
 Register (/register)
   └─▶ Hash password (bcrypt 12 rounds)

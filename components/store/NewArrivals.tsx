@@ -4,6 +4,7 @@ import ProductCard, { type Product } from "./ProductCard"
 const NEW_ARRIVALS: Product[] = [
   {
     id: "na1",
+    slug: "orthopedic-dog-bed-large",
     name: "Orthopedic Dog Bed Large",
     category: "Dog Accessories",
     price: 4500,
@@ -15,6 +16,7 @@ const NEW_ARRIVALS: Product[] = [
   },
   {
     id: "na2",
+    slug: "interactive-cat-toy-set",
     name: "Interactive Cat Toy Set",
     category: "Cat Toys",
     price: 890,
@@ -27,6 +29,7 @@ const NEW_ARRIVALS: Product[] = [
   },
   {
     id: "na3",
+    slug: "stainless-steel-pet-bowl-set",
     name: "Stainless Steel Pet Bowl Set",
     category: "Accessories",
     price: 450,
@@ -38,6 +41,7 @@ const NEW_ARRIVALS: Product[] = [
   },
   {
     id: "na4",
+    slug: "hamster-running-wheel-21cm",
     name: "Hamster Running Wheel 21cm",
     category: "Small Pets",
     price: 1200,
@@ -50,6 +54,7 @@ const NEW_ARRIVALS: Product[] = [
   },
   {
     id: "na5",
+    slug: "cat-scratching-post-tower",
     name: "Cat Scratching Post Tower",
     category: "Cat Accessories",
     price: 3200,
@@ -61,6 +66,7 @@ const NEW_ARRIVALS: Product[] = [
   },
   {
     id: "na6",
+    slug: "parrot-cage-premium-xl",
     name: "Parrot Cage Premium XL",
     category: "Bird Accessories",
     price: 8500,
@@ -73,6 +79,7 @@ const NEW_ARRIVALS: Product[] = [
   },
   {
     id: "na7",
+    slug: "dog-training-clicker-kit",
     name: "Dog Training Clicker Kit",
     category: "Dog Training",
     price: 750,
@@ -84,6 +91,7 @@ const NEW_ARRIVALS: Product[] = [
   },
   {
     id: "na8",
+    slug: "aquarium-canister-filter-pump",
     name: "Aquarium Canister Filter Pump",
     category: "Aquarium",
     price: 2800,

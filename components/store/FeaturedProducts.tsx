@@ -4,6 +4,7 @@ import ProductCard, { type Product } from "./ProductCard"
 const BEST_SELLERS: Product[] = [
   {
     id: "bs1",
+    slug: "royal-canin-adult-dog-food-3kg",
     name: "Royal Canin Adult Dog Food 3kg",
     category: "Dog Food",
     price: 3500,
@@ -16,6 +17,7 @@ const BEST_SELLERS: Product[] = [
   },
   {
     id: "bs2",
+    slug: "whiskas-tuna-cat-food-12-pack",
     name: "Whiskas Tuna Cat Food — 12 Pack",
     category: "Cat Food",
     price: 1200,
@@ -28,6 +30,7 @@ const BEST_SELLERS: Product[] = [
   },
   {
     id: "bs3",
+    slug: "premium-bird-seed-mix-2kg",
     name: "Premium Bird Seed Mix 2kg",
     category: "Bird Food",
     price: 850,
@@ -39,6 +42,7 @@ const BEST_SELLERS: Product[] = [
   },
   {
     id: "bs4",
+    slug: "aquarium-led-strip-light-60cm",
     name: "Aquarium LED Strip Light 60cm",
     category: "Aquarium",
     price: 2200,

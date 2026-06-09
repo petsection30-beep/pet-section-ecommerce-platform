@@ -1,24 +1,30 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { useCartStore } from "@/store/cartStore"
 import brand from "@/config/brand.config"
 
 export type Product = {
-  id: string
-  name: string
-  category: string
-  price: number
+  id:           string
+  slug:         string
+  name:         string
+  category:     string
+  price:        number
   comparePrice?: number
-  emoji: string
-  gradient: string
-  inStock: boolean
-  rating?: number
+  emoji:        string
+  gradient:     string
+  image?:       string | null
+  inStock:      boolean
+  rating?:      number
   reviewCount?: number
 }
 
 export default function ProductCard({ product }: { product: Product }) {
   const [wishlisted, setWishlisted] = useState(false)
-  const [added, setAdded] = useState(false)
+  const [added,      setAdded]      = useState(false)
+  const addItem = useCartStore((s) => s.addItem)
 
   const discount = product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
@@ -26,6 +32,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
   function handleAddToCart() {
     if (!product.inStock) return
+    addItem({
+      id:       product.id,
+      slug:     product.slug,
+      name:     product.name,
+      price:    product.price,
+      emoji:    product.emoji,
+      gradient: product.gradient,
+    })
     setAdded(true)
     setTimeout(() => setAdded(false), 1600)
   }
@@ -34,11 +48,17 @@ export default function ProductCard({ product }: { product: Product }) {
     <div className="relative group bg-surface rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
 
       {/* Image area */}
-      <div className={`aspect-square bg-gradient-to-br ${product.gradient} flex items-center justify-center overflow-hidden`}>
-        <span className="text-6xl select-none group-hover:scale-110 transition-transform duration-300 leading-none">
-          {product.emoji}
-        </span>
-      </div>
+      <Link href={`/products/${product.slug}`}>
+        <div className={`aspect-square bg-gradient-to-br ${product.gradient} flex items-center justify-center overflow-hidden`}>
+          {product.image ? (
+            <Image src={product.image} alt={product.name} width={300} height={300} className="object-cover w-full h-full" />
+          ) : (
+            <span className="text-6xl select-none group-hover:scale-110 transition-transform duration-300 leading-none">
+              {product.emoji}
+            </span>
+          )}
+        </div>
+      </Link>
 
       {/* Top badges */}
       <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -72,7 +92,9 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* Card body */}
       <div className="p-4">
         <p className="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">{product.category}</p>
-        <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 mb-2">{product.name}</h3>
+        <Link href={`/products/${product.slug}`}>
+          <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 mb-2 hover:text-primary transition-colors">{product.name}</h3>
+        </Link>
 
         {/* Star rating */}
         {product.rating !== undefined && (

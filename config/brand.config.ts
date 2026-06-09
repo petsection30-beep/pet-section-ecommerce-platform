@@ -2,6 +2,7 @@ export type BrandConfig = {
   storeName: string
   storeTagline: string
   storeDescription: string
+  logoUrl: string
   primaryColor: string
   secondaryColor: string
   accentColor: string
@@ -31,9 +32,10 @@ export type BrandConfig = {
 }
 
 const brand: BrandConfig = {
-  storeName:        "PawsPoint",
+  storeName:        "Pet Section",
   storeTagline:     "Everything Your Pet Deserves",
   storeDescription: "Pakistan's #1 online pet store — dogs, cats, birds & more.",
+  logoUrl:          "/pet-section-logo.jpg",
 
   primaryColor:   "#F97316",
   secondaryColor: "#1E3A5F",
@@ -43,21 +45,21 @@ const brand: BrandConfig = {
   mutedColor:     "#6B7280",
   fontFamily:     "Poppins",
 
-  contactEmail: "hello@pawspoint.pk",
+  contactEmail: "hello@petsection.pk",
   contactPhone: "+92 300 0000000",
   address:      "Islamabad, Pakistan",
 
   socialLinks: {
-    instagram: "https://instagram.com/pawspoint",
-    facebook:  "https://facebook.com/pawspoint",
+    instagram: "https://instagram.com/petsection",
+    facebook:  "https://facebook.com/petsection",
   },
 
   codEnabled:       true,
   easypaisaEnabled: true,
-  easypaisaTitle:   "PawsPoint Store",
+  easypaisaTitle:   "Pet Section",
   easypaisaNumber:  "0300-1234567",
   jazzcashEnabled:  true,
-  jazzcashTitle:    "PawsPoint Store",
+  jazzcashTitle:    "Pet Section",
   jazzcashNumber:   "0320-7654321",
 
   currency:       "PKR",

@@ -7,6 +7,7 @@ import { ALL_PRODUCTS } from "@/lib/mock-data"
 import brand from "@/config/brand.config"
 import { notFound } from "next/navigation"
 import { use } from "react"
+import { useCartStore } from "@/store/cartStore"
 
 const REVIEWS = [
   { id: 1, author: "Ahmad K.", rating: 5, date: "2026-05-12", body: "Absolutely love this product! My dog is obsessed and the quality is excellent. Highly recommend to all pet owners." },
@@ -25,6 +26,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   const product = ALL_PRODUCTS.find(p => p.slug === slug)
   if (!product) notFound()
 
+  const addItem = useCartStore((s) => s.addItem)
+
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({
     Size: "Medium (3kg)", Flavour: "Chicken",
   })
@@ -38,6 +41,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     : null
 
   function handleAddToCart() {
+    const p = product!
+    addItem({ id: p.id, slug: p.slug, name: p.name, price: p.price, emoji: p.emoji, gradient: p.gradient, qty })
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
   }
@@ -221,7 +226,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                     ["SKU", "PP-" + product.id.toUpperCase()],
                     ["Category", product.category],
                     ["Weight", "Available in multiple sizes"],
-                    ["Brand", "PawsPoint Premium"],
+                    ["Brand", brand.storeName],
                     ["Country", "Pakistan"],
                     ["Warranty", "30-day quality guarantee"],
                   ].map(([k, v]) => (

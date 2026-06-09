@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
+import { useCartStore } from "@/store/cartStore"
 import brand from "@/config/brand.config"
 
 const NAV_LINKS = [
@@ -13,6 +15,7 @@ const NAV_LINKS = [
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const totalItems = useCartStore((s) => s.totalItems())
 
   return (
     <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
@@ -20,9 +23,15 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl text-secondary">
-            <span className="text-2xl leading-none select-none">🐾</span>
-            <span>{brand.storeName}</span>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src={brand.logoUrl}
+              alt={brand.storeName}
+              width={120}
+              height={40}
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </Link>
 
           {/* Desktop nav */}
@@ -40,7 +49,8 @@ export default function Header() {
 
           {/* Action icons */}
           <div className="flex items-center gap-1">
-            <button
+            <Link
+              href="/search"
               className="hidden sm:flex p-2 rounded-xl text-gray-500 hover:text-primary hover:bg-page transition-colors duration-150"
               aria-label="Search"
             >
@@ -48,7 +58,7 @@ export default function Header() {
                 <circle cx="11" cy="11" r="8"/>
                 <path d="m21 21-4.35-4.35"/>
               </svg>
-            </button>
+            </Link>
 
             <Link
               href="/account"
@@ -71,6 +81,11 @@ export default function Header() {
                 <line x1="3" x2="21" y1="6" y2="6"/>
                 <path d="M16 10a4 4 0 0 1-8 0"/>
               </svg>
+              {totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
             </Link>
 
             {/* Mobile hamburger */}

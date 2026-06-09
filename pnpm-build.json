@@ -1,0 +1,4 @@
+{
+  "approved": ["@prisma/engines", "prisma"],
+  "denied": []
+}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
     const page     = Math.max(1, Number(searchParams.get("page") ?? 1))
     const limit    = Math.min(48, Math.max(1, Number(searchParams.get("limit") ?? 24)))
 
-    const where: Record<string, unknown> = { isActive: true }
+    const where: Prisma.ProductWhereInput = { isActive: true }
 
     if (category) {
       where.category = { slug: category }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth/session"
 import { productSchema } from "@/lib/validations"
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   const page     = Math.max(1, Number(searchParams.get("page") ?? 1))
   const limit    = 20
 
-  const where: Record<string, unknown> = {}
+  const where: Prisma.ProductWhereInput = {}
   if (q)        where.name     = { contains: q, mode: "insensitive" }
   if (category) where.category = { slug: category }
 

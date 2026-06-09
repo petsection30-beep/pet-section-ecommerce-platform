@@ -2,15 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth/session"
 
-const SELECT = {
-  id:        true,
-  name:      true,
-  email:     true,
-  createdAt: true,
-  orders:    { select: { total: true } },
-} as const
-
-type CustomerRow = Awaited<ReturnType<typeof prisma.user.findMany<{ select: typeof SELECT }>>>[number]
+interface CustomerRow {
+  id:        string
+  name:      string
+  email:     string
+  createdAt: Date
+  orders:    { total: number }[]
+}
 
 export async function GET(req: NextRequest) {
   const session = await requireAdmin()
@@ -28,16 +26,26 @@ export async function GET(req: NextRequest) {
       ] }
     : {}
 
-  const [customers, total] = await Promise.all([
+  const where = { role: "CUSTOMER" as const, ...nameEmailFilter }
+
+  const [rawCustomers, total] = await Promise.all([
     prisma.user.findMany({
-      where:   { role: "CUSTOMER", ...nameEmailFilter },
+      where,
       orderBy: { createdAt: "desc" },
       skip:    (page - 1) * limit,
       take:    limit,
-      select:  SELECT,
-    }) as Promise<CustomerRow[]>,
-    prisma.user.count({ where: { role: "CUSTOMER", ...nameEmailFilter } }),
+      select: {
+        id:        true,
+        name:      true,
+        email:     true,
+        createdAt: true,
+        orders:    { select: { total: true } },
+      },
+    }),
+    prisma.user.count({ where }),
   ])
+
+  const customers = rawCustomers as unknown as CustomerRow[]
 
   const data = customers.map((c) => ({
     id:         c.id,

@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+interface ProductRow {
+  id:           string
+  slug:         string
+  name:         string
+  price:        number
+  comparePrice: number | null
+  category:     { name: string; slug: string }
+  images:       { url: string }[]
+  variants:     { stock: number }[]
+  reviews:      { rating: number }[]
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl
@@ -30,7 +42,7 @@ export async function GET(req: NextRequest) {
       sort === "price-desc" ? { price: "desc" as const } :
                               { createdAt: "desc" as const }
 
-    const [products, total] = await Promise.all([
+    const [rawProducts, total] = await Promise.all([
       prisma.product.findMany({
         where,
         orderBy,
@@ -45,6 +57,8 @@ export async function GET(req: NextRequest) {
       }),
       prisma.product.count({ where }),
     ])
+
+    const products = rawProducts as unknown as ProductRow[]
 
     const data = products.map((p) => ({
       id:           p.id,

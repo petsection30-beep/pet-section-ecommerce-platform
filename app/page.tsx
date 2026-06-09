@@ -1,6 +1,6 @@
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
-import HeroBanner from "@/components/store/HeroBanner"
+import HeroSlider from "@/components/store/HeroSlider"
 import CategoryGrid from "@/components/store/CategoryGrid"
 import FeaturedProducts from "@/components/store/FeaturedProducts"
 import PromoBanner from "@/components/store/PromoBanner"
@@ -12,7 +12,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1">
-        <HeroBanner />
+        <HeroSlider />
         <CategoryGrid />
         <FeaturedProducts />
         <PromoBanner />

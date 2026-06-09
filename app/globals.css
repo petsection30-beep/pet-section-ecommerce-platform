@@ -27,6 +27,14 @@
   --font-sans: var(--font-poppins);
 }
 
+@keyframes progress {
+  from { width: 0%   }
+  to   { width: 100% }
+}
+.animate-progress {
+  animation: progress 5s linear forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

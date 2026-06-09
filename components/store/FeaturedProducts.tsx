@@ -1,59 +1,15 @@
 import Link from "next/link"
-import ProductCard, { type Product } from "./ProductCard"
+import ProductCard from "./ProductCard"
+import { ALL_PRODUCTS } from "@/lib/mock-data"
 
-const BEST_SELLERS: Product[] = [
-  {
-    id: "bs1",
-    slug: "royal-canin-adult-dog-food-3kg",
-    name: "Royal Canin Adult Dog Food 3kg",
-    category: "Dog Food",
-    price: 3500,
-    comparePrice: 4200,
-    emoji: "🐕",
-    gradient: "from-orange-50 to-orange-100",
-    inStock: true,
-    rating: 4.8,
-    reviewCount: 124,
-  },
-  {
-    id: "bs2",
-    slug: "whiskas-tuna-cat-food-12-pack",
-    name: "Whiskas Tuna Cat Food — 12 Pack",
-    category: "Cat Food",
-    price: 1200,
-    comparePrice: 1500,
-    emoji: "🐈",
-    gradient: "from-purple-50 to-purple-100",
-    inStock: true,
-    rating: 4.6,
-    reviewCount: 89,
-  },
-  {
-    id: "bs3",
-    slug: "premium-bird-seed-mix-2kg",
-    name: "Premium Bird Seed Mix 2kg",
-    category: "Bird Food",
-    price: 850,
-    emoji: "🦜",
-    gradient: "from-green-50 to-green-100",
-    inStock: true,
-    rating: 4.5,
-    reviewCount: 42,
-  },
-  {
-    id: "bs4",
-    slug: "aquarium-led-strip-light-60cm",
-    name: "Aquarium LED Strip Light 60cm",
-    category: "Aquarium",
-    price: 2200,
-    comparePrice: 2800,
-    emoji: "🐠",
-    gradient: "from-blue-50 to-blue-100",
-    inStock: true,
-    rating: 4.7,
-    reviewCount: 67,
-  },
+const BEST_SELLER_SLUGS = [
+  "royal-canin-adult-dog-food-3kg",
+  "whiskas-tuna-cat-food-12-pack",
+  "premium-bird-seed-mix-2kg",
+  "aquarium-led-strip-light-60cm",
 ]
+
+const BEST_SELLERS = ALL_PRODUCTS.filter(p => BEST_SELLER_SLUGS.includes(p.slug))
 
 export default function FeaturedProducts() {
   return (

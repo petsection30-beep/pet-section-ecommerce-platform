@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Breadcrumb from "@/components/ui/Breadcrumb"
+import Image from "next/image"
 import { ALL_PRODUCTS } from "@/lib/mock-data"
 import brand from "@/config/brand.config"
 import { notFound } from "next/navigation"
@@ -59,15 +60,39 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Image gallery */}
           <div className="space-y-3">
-            <div className={`aspect-square rounded-3xl bg-gradient-to-br ${product.gradient} flex items-center justify-center`}>
-              <span className="text-[120px] leading-none select-none">{product.emoji}</span>
+            <div className={`aspect-square rounded-3xl bg-gradient-to-br ${product.gradient} flex items-center justify-center overflow-hidden`}>
+              {product.image ? (
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  width={600}
+                  height={600}
+                  className="w-full h-full object-cover"
+                  priority
+                />
+              ) : (
+                <span className="text-[120px] leading-none select-none">{product.emoji}</span>
+              )}
             </div>
             {/* Thumbnails */}
             <div className="grid grid-cols-4 gap-3">
-              {[product.emoji, "📸", "🖼️", "🔍"].map((e, i) => (
-                <button key={i} className={`aspect-square rounded-2xl bg-gradient-to-br ${product.gradient} flex items-center justify-center text-3xl border-2 transition-colors ${i === 0 ? "border-primary" : "border-transparent hover:border-gray-200"}`}>
-                  {e}
-                </button>
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`aspect-square rounded-2xl bg-gradient-to-br ${product.gradient} flex items-center justify-center overflow-hidden border-2 transition-colors ${i === 0 ? "border-primary" : "border-transparent hover:border-gray-200"}`}
+                >
+                  {product.image && i === 0 ? (
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width={120}
+                      height={120}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl leading-none select-none">{product.emoji}</span>
+                  )}
+                </div>
               ))}
             </div>
           </div>

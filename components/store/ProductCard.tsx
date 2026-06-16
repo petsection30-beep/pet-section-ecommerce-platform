@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useCartStore } from "@/store/cartStore"
 import brand from "@/config/brand.config"
 
@@ -22,9 +23,28 @@ export type Product = {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
+  const router = useRouter()
   const [wishlisted, setWishlisted] = useState(false)
+  const [wishlistBusy, setWishlistBusy] = useState(false)
   const [added,      setAdded]      = useState(false)
   const addItem = useCartStore((s) => s.addItem)
+
+  async function toggleWishlist() {
+    if (wishlistBusy) return
+    const next = !wishlisted
+    setWishlisted(next)
+    setWishlistBusy(true)
+    try {
+      const res = next
+        ? await fetch("/api/wishlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: product.id }) })
+        : await fetch(`/api/wishlist/${product.id}`, { method: "DELETE" })
+      if (res.status === 401) { setWishlisted(false); router.push("/login?next=/account/wishlist") }
+    } catch {
+      setWishlisted(!next)
+    } finally {
+      setWishlistBusy(false)
+    }
+  }
 
   const discount = product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
@@ -76,7 +96,8 @@ export default function ProductCard({ product }: { product: Product }) {
 
       {/* Wishlist button */}
       <button
-        onClick={() => setWishlisted(w => !w)}
+        onClick={toggleWishlist}
+        disabled={wishlistBusy}
         className="absolute top-3 right-3 p-1.5 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm hover:scale-110 transition-transform duration-150"
         aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
       >

@@ -1,32 +1,104 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import brand from "@/config/brand.config"
+import { useCartStore } from "@/store/cartStore"
+import { useCheckoutStore } from "@/store/checkoutStore"
 
 const PROGRESS_STEPS = ["Address", "Payment", "Confirmation"]
+const DELIVERY_FEE   = 200
+const FREE_THRESHOLD = 2000
 
 type Method = "COD" | "EASYPAISA" | "JAZZCASH"
 
 export default function CheckoutPaymentPage() {
   const router = useRouter()
-  const [method, setMethod] = useState<Method>("COD")
-  const [txnId, setTxnId]   = useState("")
-  const [txnErr, setTxnErr] = useState("")
 
-  function handlePlaceOrder(e: React.FormEvent) {
+  const items      = useCartStore((s) => s.items)
+  const totalPrice = useCartStore((s) => s.totalPrice)
+  const clearCart  = useCartStore((s) => s.clearCart)
+  const address      = useCheckoutStore((s) => s.address)
+  const clearAddress = useCheckoutStore((s) => s.clear)
+
+  const [mounted, setMounted] = useState(false)
+  const [method, setMethod]   = useState<Method>("COD")
+  const [txnId, setTxnId]     = useState("")
+  const [txnErr, setTxnErr]   = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [apiError, setApiError]     = useState("")
+
+  useEffect(() => { setMounted(true) }, [])
+
+  // Guard: if address step was skipped, send the user back.
+  useEffect(() => {
+    if (mounted && !address) router.replace("/checkout")
+  }, [mounted, address, router])
+
+  const subtotal    = totalPrice()
+  const deliveryFee = subtotal >= FREE_THRESHOLD ? 0 : DELIVERY_FEE
+  const total       = subtotal + deliveryFee
+
+  async function handlePlaceOrder(e: React.FormEvent) {
     e.preventDefault()
+    setApiError("")
+
     if ((method === "EASYPAISA" || method === "JAZZCASH") && !txnId.trim()) {
       setTxnErr("Transaction ID is required"); return
     }
-    router.push("/checkout/confirmation")
+    if (!address || items.length === 0) {
+      router.replace("/cart"); return
+    }
+
+    setSubmitting(true)
+    try {
+      const res = await fetch("/api/orders", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentMethod: method,
+          txnId:         method === "COD" ? undefined : txnId.trim(),
+          fullName:      address.fullName,
+          phone:         address.phone,
+          addressLine1:  address.line1,
+          addressLine2:  address.line2 || undefined,
+          city:          address.city,
+          province:      address.province,
+          postalCode:    address.postalCode || "",
+          items: items.map((i) => ({
+            productId:   i.id,
+            variantId:   i.variantId,
+            productName: i.name,
+            qty:         i.qty,
+            unitPrice:   i.price,
+          })),
+        }),
+      })
+      const data = await res.json()
+      if (res.status === 401) {
+        router.push("/login?next=/checkout/payment"); return
+      }
+      if (!res.ok) {
+        setApiError(data.error ?? "Failed to place order. Please try again.")
+        return
+      }
+      clearCart()
+      clearAddress()
+      router.push(`/checkout/confirmation?orderId=${data.orderId}`)
+    } catch {
+      setApiError("Something went wrong. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const paymentInfo = {
-    EASYPAISA: { title: brand.easypaisaTitle, number: brand.easypaisaNumber, emoji: "💚" },
-    JAZZCASH:  { title: brand.jazzcashTitle,  number: brand.jazzcashNumber,  emoji: "🔴" },
+    EASYPAISA: { title: brand.easypaisaTitle, number: brand.easypaisaNumber },
+    JAZZCASH:  { title: brand.jazzcashTitle,  number: brand.jazzcashNumber },
   }
+
+  if (!mounted) return null
 
   return (
     <div className="bg-page min-h-screen">
@@ -57,7 +129,7 @@ export default function CheckoutPaymentPage() {
                 {/* COD */}
                 {brand.codEnabled && (
                   <label className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${method === "COD" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" className="mt-0.5 accent-primary" checked={method === "COD"} onChange={() => setMethod("COD")} />
+                    <input type="radio" className="mt-0.5 accent-primary" checked={method === "COD"} onChange={() => { setMethod("COD"); setTxnErr("") }} />
                     <div>
                       <p className="font-semibold text-sm text-gray-900">🚚 Cash on Delivery</p>
                       <p className="text-xs text-gray-500 mt-0.5">Pay when your order arrives at your doorstep. No advance payment required.</p>
@@ -74,7 +146,7 @@ export default function CheckoutPaymentPage() {
                       <p className="text-xs text-gray-500 mt-0.5">Send payment via EasyPaisa mobile wallet.</p>
                       {method === "EASYPAISA" && (
                         <div className="mt-3 p-3 rounded-xl bg-green-50 border border-green-100 text-xs space-y-1">
-                          <p className="font-semibold text-green-800">Send {brand.currencySymbol} 4,900 to:</p>
+                          <p className="font-semibold text-green-800">Send {brand.currencySymbol} {total.toLocaleString()} to:</p>
                           <p className="text-green-700">Account: <span className="font-mono font-bold">{paymentInfo.EASYPAISA.number}</span></p>
                           <p className="text-green-700">Title: <span className="font-semibold">{paymentInfo.EASYPAISA.title}</span></p>
                         </div>
@@ -92,7 +164,7 @@ export default function CheckoutPaymentPage() {
                       <p className="text-xs text-gray-500 mt-0.5">Send payment via JazzCash mobile wallet.</p>
                       {method === "JAZZCASH" && (
                         <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-100 text-xs space-y-1">
-                          <p className="font-semibold text-red-800">Send {brand.currencySymbol} 4,900 to:</p>
+                          <p className="font-semibold text-red-800">Send {brand.currencySymbol} {total.toLocaleString()} to:</p>
                           <p className="text-red-700">Account: <span className="font-mono font-bold">{paymentInfo.JAZZCASH.number}</span></p>
                           <p className="text-red-700">Title: <span className="font-semibold">{paymentInfo.JAZZCASH.title}</span></p>
                         </div>
@@ -115,14 +187,21 @@ export default function CheckoutPaymentPage() {
                   <p className="text-xs text-gray-400 mt-1">Your order will be confirmed after we verify your payment.</p>
                 </div>
               )}
+
+              {apiError && (
+                <div className="mt-5 px-4 py-3 rounded-xl bg-danger/10 text-danger text-sm font-medium">{apiError}</div>
+              )}
             </div>
 
             <div className="flex justify-between gap-4">
               <Link href="/checkout" className="h-11 px-6 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center transition-colors">
                 ← Back
               </Link>
-              <button type="submit" className="h-11 px-8 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 active:scale-[0.97] transition-all">
-                Place Order →
+              <button type="submit" disabled={submitting}
+                className="h-11 px-8 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 active:scale-[0.97] transition-all disabled:opacity-60 flex items-center gap-2">
+                {submitting ? (
+                  <><svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity={0.3}/><path d="M21 12c0-4.97-4.03-9-9-9"/></svg> Placing Order...</>
+                ) : "Place Order →"}
               </button>
             </div>
           </form>
@@ -130,18 +209,23 @@ export default function CheckoutPaymentPage() {
           {/* Order summary */}
           <div className="bg-surface rounded-2xl border border-gray-100 shadow-sm p-6 h-fit sticky top-24">
             <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
-            <div className="space-y-2 text-sm text-gray-600 mb-4">
-              {["Royal Canin Dog Food", "Pet Bowl Set ×2", "Training Clicker"].map((item, i) => (
-                <div key={i} className="flex justify-between">
-                  <span className="truncate mr-2">{item}</span>
-                  <span className="font-medium text-gray-900 shrink-0">{brand.currencySymbol} {[3500, 900, 750][i].toLocaleString()}</span>
+            <div className="space-y-2 text-sm text-gray-600 mb-4 max-h-64 overflow-y-auto">
+              {items.map((item) => (
+                <div key={`${item.id}-${item.variantId ?? ""}`} className="flex justify-between gap-2">
+                  <span className="truncate mr-2">{item.name} {item.qty > 1 && <span className="text-gray-400">×{item.qty}</span>}</span>
+                  <span className="font-medium text-gray-900 shrink-0">{brand.currencySymbol} {(item.price * item.qty).toLocaleString()}</span>
                 </div>
               ))}
             </div>
             <div className="border-t pt-3 space-y-2 text-sm text-gray-600">
-              <div className="flex justify-between"><span>Subtotal</span><span className="font-medium text-gray-900">{brand.currencySymbol} 5,150</span></div>
-              <div className="flex justify-between"><span>Delivery</span><span className="font-medium text-gray-900">{brand.currencySymbol} 200</span></div>
-              <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t"><span>Total</span><span>{brand.currencySymbol} 5,350</span></div>
+              <div className="flex justify-between"><span>Subtotal</span><span className="font-medium text-gray-900">{brand.currencySymbol} {subtotal.toLocaleString()}</span></div>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span className={`font-medium ${deliveryFee === 0 ? "text-success" : "text-gray-900"}`}>
+                  {deliveryFee === 0 ? "FREE" : `${brand.currencySymbol} ${deliveryFee}`}
+                </span>
+              </div>
+              <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t"><span>Total</span><span>{brand.currencySymbol} {total.toLocaleString()}</span></div>
             </div>
           </div>
         </div>

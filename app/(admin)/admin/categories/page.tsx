@@ -1,38 +1,69 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
-const INITIAL = [
-  { id: 1, name: "Dog Food",        emoji: "🐕", slug: "dog-food",        products: 4, active: true  },
-  { id: 2, name: "Cat Food",        emoji: "🐈", slug: "cat-food",        products: 3, active: true  },
-  { id: 3, name: "Bird Food",       emoji: "🦜", slug: "bird-food",       products: 2, active: true  },
-  { id: 4, name: "Dog Accessories", emoji: "🦴", slug: "dog-accessories", products: 5, active: true  },
-  { id: 5, name: "Cat Accessories", emoji: "🧶", slug: "cat-accessories", products: 3, active: true  },
-  { id: 6, name: "Aquarium",        emoji: "🐠", slug: "aquarium",        products: 2, active: true  },
-  { id: 7, name: "Grooming",        emoji: "✂️",  slug: "grooming",        products: 2, active: true  },
-  { id: 8, name: "Small Pets",      emoji: "🐹", slug: "small-pets",      products: 2, active: false },
-]
+type Category = {
+  id: string; name: string; emoji: string; slug: string; isActive: boolean
+  _count?: { products: number }
+}
+
+function slugify(s: string) {
+  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+}
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState(INITIAL)
-  const [adding, setAdding]         = useState(false)
-  const [newName, setNewName]       = useState("")
-  const [newEmoji, setNewEmoji]     = useState("🐾")
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [adding, setAdding]     = useState(false)
+  const [newName, setNewName]   = useState("")
+  const [newEmoji, setNewEmoji] = useState("🐾")
+  const [error, setError]       = useState("")
+  const [saving, setSaving]     = useState(false)
 
-  function toggleActive(id: number) {
-    setCategories(c => c.map(cat => cat.id === id ? { ...cat, active: !cat.active } : cat))
+  function load() {
+    fetch("/api/admin/categories")
+      .then(r => r.json())
+      .then(d => setCategories(d.categories ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }
-  function remove(id: number) {
-    setCategories(c => c.filter(cat => cat.id !== id))
-  }
-  function addCategory() {
+  useEffect(load, [])
+
+  async function addCategory() {
     if (!newName.trim()) return
-    setCategories(c => [...c, {
-      id: Date.now(), name: newName.trim(), emoji: newEmoji,
-      slug: newName.trim().toLowerCase().replace(/\s+/g, "-"),
-      products: 0, active: true,
-    }])
-    setNewName(""); setNewEmoji("🐾"); setAdding(false)
+    setError("")
+    setSaving(true)
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName.trim(), slug: slugify(newName), emoji: newEmoji || "🐾", isActive: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? "Failed to add category"); return }
+      setCategories(prev => [...prev, { ...data.category, _count: { products: 0 } }])
+      setNewName(""); setNewEmoji("🐾"); setAdding(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function toggleActive(cat: Category) {
+    setCategories(prev => prev.map(c => c.id === cat.id ? { ...c, isActive: !c.isActive } : c))
+    await fetch(`/api/admin/categories/${cat.id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !cat.isActive }),
+    }).catch(() => load())
+  }
+
+  async function remove(cat: Category) {
+    if ((cat._count?.products ?? 0) > 0) {
+      alert(`"${cat.name}" has ${cat._count?.products} product(s). Reassign or remove them first.`)
+      return
+    }
+    if (!confirm(`Delete category "${cat.name}"?`)) return
+    setCategories(prev => prev.filter(c => c.id !== cat.id))
+    const res = await fetch(`/api/admin/categories/${cat.id}`, { method: "DELETE" }).catch(() => null)
+    if (!res || !res.ok) load()
   }
 
   return (
@@ -42,27 +73,27 @@ export default function AdminCategoriesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
           <p className="text-sm text-gray-500 mt-0.5">{categories.length} categories</p>
         </div>
-        <button onClick={() => setAdding(a => !a)} className="h-10 px-5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2">
+        <button onClick={() => { setAdding(a => !a); setError("") }} className="h-10 px-5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2">
           <span className="text-base leading-none">+</span> Add Category
         </button>
       </div>
 
-      {/* Add form */}
       {adding && (
-        <div className="bg-white rounded-2xl border border-primary/30 shadow-sm p-5 mb-5 flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Emoji</label>
-            <input value={newEmoji} onChange={e => setNewEmoji(e.target.value)}
-              className="w-16 h-10 px-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-center text-lg" />
-          </div>
-          <div className="flex-1 min-w-48">
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Category Name *</label>
-            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Reptiles"
-              className="w-full h-10 px-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={addCategory} className="h-10 px-4 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">Save</button>
-            <button onClick={() => setAdding(false)} className="h-10 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+        <div className="bg-white rounded-2xl border border-primary/30 shadow-sm p-5 mb-5">
+          {error && <div className="mb-3 px-4 py-2 rounded-xl bg-danger/10 text-danger text-sm font-medium">{error}</div>}
+          <div className="flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Emoji</label>
+              <input value={newEmoji} onChange={e => setNewEmoji(e.target.value)} className="w-16 h-10 px-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-center text-lg" />
+            </div>
+            <div className="flex-1 min-w-48">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Category Name *</label>
+              <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Reptiles" className="w-full h-10 px-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={addCategory} disabled={saving} className="h-10 px-4 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60">{saving ? "Saving…" : "Save"}</button>
+              <button onClick={() => setAdding(false)} className="h-10 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+            </div>
           </div>
         </div>
       )}
@@ -77,7 +108,9 @@ export default function AdminCategoriesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {categories.map(cat => (
+            {loading ? (
+              <tr><td colSpan={5} className="px-5 py-16 text-center"><svg className="size-6 animate-spin text-primary inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity={0.3}/><path d="M21 12c0-4.97-4.03-9-9-9"/></svg></td></tr>
+            ) : categories.map(cat => (
               <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-3">
@@ -86,23 +119,20 @@ export default function AdminCategoriesPage() {
                   </div>
                 </td>
                 <td className="px-5 py-3.5 font-mono text-xs text-gray-400">{cat.slug}</td>
-                <td className="px-5 py-3.5 text-gray-600">{cat.products}</td>
+                <td className="px-5 py-3.5 text-gray-600">{cat._count?.products ?? 0}</td>
                 <td className="px-5 py-3.5">
-                  <div
-                    onClick={() => toggleActive(cat.id)}
-                    className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${cat.active ? "bg-primary" : "bg-gray-200"}`}
-                  >
-                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${cat.active ? "translate-x-5" : ""}`} />
+                  <div onClick={() => toggleActive(cat)} className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${cat.isActive ? "bg-primary" : "bg-gray-200"}`}>
+                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${cat.isActive ? "translate-x-5" : ""}`} />
                   </div>
                 </td>
                 <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-3">
-                    <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">Edit</button>
-                    <button onClick={() => remove(cat.id)} className="text-xs font-medium text-danger hover:text-danger/80 transition-colors">Delete</button>
-                  </div>
+                  <button onClick={() => remove(cat)} className="text-xs font-medium text-danger hover:text-danger/80 transition-colors">Delete</button>
                 </td>
               </tr>
             ))}
+            {!loading && categories.length === 0 && (
+              <tr><td colSpan={5} className="px-5 py-16 text-center text-gray-400 text-sm">No categories yet.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

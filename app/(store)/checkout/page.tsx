@@ -1,21 +1,53 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import brand from "@/config/brand.config"
+import { useCartStore } from "@/store/cartStore"
+import { useCheckoutStore } from "@/store/checkoutStore"
 
 const PROVINCES = ["Punjab", "Sindh", "KPK", "Balochistan", "Islamabad Capital Territory", "Gilgit-Baltistan", "AJK"]
-
 const PROGRESS_STEPS = ["Address", "Payment", "Confirmation"]
+
+const DELIVERY_FEE   = 200
+const FREE_THRESHOLD = 2000
+
+function sanitizePhone(v: string) {
+  return v.replace(/[\s-]/g, "")
+}
 
 export default function CheckoutAddressPage() {
   const router = useRouter()
+
+  const items      = useCartStore((s) => s.items)
+  const totalPrice = useCartStore((s) => s.totalPrice)
+  const savedAddress = useCheckoutStore((s) => s.address)
+  const setAddress   = useCheckoutStore((s) => s.setAddress)
+
+  const [mounted, setMounted] = useState(false)
   const [form, setForm] = useState({
     fullName: "", phone: "", line1: "", line2: "",
     city: "", province: "Punjab", postalCode: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    if (savedAddress) {
+      setForm({
+        fullName: savedAddress.fullName, phone: savedAddress.phone,
+        line1: savedAddress.line1, line2: savedAddress.line2,
+        city: savedAddress.city, province: savedAddress.province,
+        postalCode: savedAddress.postalCode,
+      })
+    }
+  }, [savedAddress])
+
+  const subtotal    = totalPrice()
+  const deliveryFee = subtotal >= FREE_THRESHOLD ? 0 : DELIVERY_FEE
+  const total       = subtotal + deliveryFee
+  const itemCount   = items.reduce((s, i) => s + i.qty, 0)
 
   function set(field: string, val: string) {
     setForm(prev => ({ ...prev, [field]: val }))
@@ -24,10 +56,13 @@ export default function CheckoutAddressPage() {
 
   function validate() {
     const e: Record<string, string> = {}
-    if (!form.fullName.trim())  e.fullName = "Full name is required"
-    if (!form.phone.trim())     e.phone    = "Phone number is required"
-    if (!form.line1.trim())     e.line1    = "Address is required"
-    if (!form.city.trim())      e.city     = "City is required"
+    if (!form.fullName.trim())                     e.fullName = "Full name is required"
+    const phone = sanitizePhone(form.phone)
+    if (!phone)                                    e.phone = "Phone number is required"
+    else if (!/^(\+92|0)[0-9]{10}$/.test(phone))   e.phone = "Enter a valid PK number (e.g. 03001234567)"
+    if (form.line1.trim().length < 5)              e.line1 = "Address must be at least 5 characters"
+    if (!form.city.trim())                         e.city = "City is required"
+    if (form.postalCode && !/^\d{5}$/.test(form.postalCode)) e.postalCode = "Postal code must be 5 digits"
     return e
   }
 
@@ -35,7 +70,22 @@ export default function CheckoutAddressPage() {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
+    setAddress({ ...form, phone: sanitizePhone(form.phone) })
     router.push("/checkout/payment")
+  }
+
+  // Empty cart guard (after hydration)
+  if (mounted && items.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-20">
+        <span className="text-6xl mb-4 block">🛒</span>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
+        <p className="text-gray-500 mb-8">Add some products before checking out.</p>
+        <Link href="/products" className="h-11 px-8 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-all inline-flex items-center">
+          Shop Now
+        </Link>
+      </div>
+    )
   }
 
   return (
@@ -82,7 +132,7 @@ export default function CheckoutAddressPage() {
                   <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Phone Number *</label>
                   <input value={form.phone} onChange={e => set("phone", e.target.value)}
                     className={`w-full h-10 px-3 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${errors.phone ? "border-danger focus:ring-danger/20" : "border-gray-200 focus:border-primary focus:ring-primary/20"}`}
-                    placeholder="0300-0000000"
+                    placeholder="03001234567"
                   />
                   {errors.phone && <p className="text-xs text-danger mt-1">{errors.phone}</p>}
                 </div>
@@ -129,9 +179,10 @@ export default function CheckoutAddressPage() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Postal Code <span className="text-gray-400 font-normal">(optional)</span></label>
                   <input value={form.postalCode} onChange={e => set("postalCode", e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    className={`w-full h-10 px-3 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${errors.postalCode ? "border-danger focus:ring-danger/20" : "border-gray-200 focus:border-primary focus:ring-primary/20"}`}
                     placeholder="44000"
                   />
+                  {errors.postalCode && <p className="text-xs text-danger mt-1">{errors.postalCode}</p>}
                 </div>
               </div>
             </div>
@@ -150,10 +201,15 @@ export default function CheckoutAddressPage() {
           <div className="bg-surface rounded-2xl border border-gray-100 shadow-sm p-6 h-fit sticky top-24">
             <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
             <div className="space-y-3 text-sm text-gray-600">
-              <div className="flex justify-between"><span>3 items</span><span className="font-medium text-gray-900">{brand.currencySymbol} 4,700</span></div>
-              <div className="flex justify-between"><span>Delivery</span><span className="font-medium text-gray-900">{brand.currencySymbol} 200</span></div>
+              <div className="flex justify-between"><span>{itemCount} {itemCount === 1 ? "item" : "items"}</span><span className="font-medium text-gray-900">{brand.currencySymbol} {subtotal.toLocaleString()}</span></div>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span className={`font-medium ${deliveryFee === 0 ? "text-success" : "text-gray-900"}`}>
+                  {deliveryFee === 0 ? "FREE" : `${brand.currencySymbol} ${deliveryFee}`}
+                </span>
+              </div>
               <div className="border-t pt-3 flex justify-between font-bold text-gray-900">
-                <span>Total</span><span>{brand.currencySymbol} 4,900</span>
+                <span>Total</span><span>{brand.currencySymbol} {total.toLocaleString()}</span>
               </div>
             </div>
           </div>

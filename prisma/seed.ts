@@ -19,20 +19,83 @@ const CATEGORIES = [
   { name: "Bird Accessories", slug: "bird-accessories", emoji: "🪺", description: "Cages, perches, swings, and accessories for pet birds." },
   { name: "Aquarium",         slug: "aquarium",         emoji: "🐠", description: "Fish tanks, filters, gravel, and aquarium décor." },
   { name: "Small Pets",       slug: "small-pets",       emoji: "🐹", description: "Supplies for hamsters, rabbits, guinea pigs, and more." },
+  { name: "Cat Toys",         slug: "cat-toys",         emoji: "🪀", description: "Interactive toys and teasers to keep cats entertained." },
+  { name: "Dog Training",     slug: "dog-training",     emoji: "🎯", description: "Clickers, treats, and tools for training your dog." },
+  { name: "Grooming",         slug: "grooming",         emoji: "✂️", description: "Brushes, clippers, and grooming kits for all pets." },
+  { name: "Accessories",      slug: "accessories",      emoji: "🥣", description: "Bowls, feeders, and everyday pet essentials." },
+]
+
+// Unsplash photo URLs — w=600&h=600&fit=crop for square images
+const u = (id: string) =>
+  `https://images.unsplash.com/photo-${id}?w=600&h=600&fit=crop&q=80`
+
+const PRODUCTS = [
+  { id: "p1",  slug: "royal-canin-adult-dog-food-3kg", name: "Royal Canin Adult Dog Food 3kg", category: "dog-food",         price: 3500, comparePrice: 4200, image: u("1568640347023-a616a30bc3bd"), featured: true,  stock: 40 },
+  { id: "p2",  slug: "whiskas-tuna-cat-food-12-pack",  name: "Whiskas Tuna Cat Food — 12 Pack", category: "cat-food",         price: 1200, comparePrice: 1500, image: u("1514888286974-6c03e2ca1dba"), featured: true,  stock: 60 },
+  { id: "p3",  slug: "premium-bird-seed-mix-2kg",      name: "Premium Bird Seed Mix 2kg",       category: "bird-food",        price: 850,  comparePrice: null, image: u("1552728089-57bdde30beb3"),  featured: true,  stock: 35 },
+  { id: "p4",  slug: "aquarium-led-strip-light-60cm",  name: "Aquarium LED Strip Light 60cm",   category: "aquarium",         price: 2200, comparePrice: 2800, image: u("1535591273668-578e31182c4f"), featured: true,  stock: 25 },
+  { id: "p5",  slug: "orthopedic-dog-bed-large",       name: "Orthopedic Dog Bed Large",        category: "dog-accessories",  price: 4500, comparePrice: null, image: u("1548199973-03cce0bbc87b"),  featured: false, stock: 18 },
+  { id: "p6",  slug: "interactive-cat-toy-set",        name: "Interactive Cat Toy Set",         category: "cat-toys",         price: 890,  comparePrice: 1100, image: u("1574158622682-e40e69881006"), featured: false, stock: 50 },
+  { id: "p7",  slug: "stainless-steel-pet-bowl-set",   name: "Stainless Steel Pet Bowl Set",    category: "accessories",      price: 450,  comparePrice: null, image: u("1601758228041-f3b2795255f1"), featured: false, stock: 80 },
+  { id: "p8",  slug: "hamster-running-wheel-21cm",     name: "Hamster Running Wheel 21cm",      category: "small-pets",       price: 1200, comparePrice: 1500, image: u("1425082661705-1834bfd09dca"), featured: false, stock: 22 },
+  { id: "p9",  slug: "cat-scratching-post-tower",      name: "Cat Scratching Post Tower",       category: "cat-accessories",  price: 3200, comparePrice: null, image: u("1478098711619-5ab0b478d6e6"), featured: false, stock: 15 },
+  { id: "p10", slug: "parrot-cage-premium-xl",         name: "Parrot Cage Premium XL",          category: "bird-accessories", price: 8500, comparePrice: 9500, image: u("1544568100-847a948585b9"),  featured: false, stock: 0  },
+  { id: "p11", slug: "dog-training-clicker-kit",       name: "Dog Training Clicker Kit",        category: "dog-training",     price: 750,  comparePrice: null, image: u("1587300003388-59208cc962cb"), featured: false, stock: 90 },
+  { id: "p12", slug: "aquarium-canister-filter-pump",  name: "Aquarium Canister Filter Pump",   category: "aquarium",         price: 2800, comparePrice: 3200, image: u("1521651201144-634f700b36ef"), featured: false, stock: 30 },
+  { id: "p13", slug: "dog-grooming-kit-8-piece",       name: "Dog Grooming Kit 8-Piece",        category: "grooming",         price: 1800, comparePrice: 2200, image: u("1516734212186-a967f81ad0d7"), featured: false, stock: 28 },
+  { id: "p14", slug: "genuine-leather-dog-leash",      name: "Genuine Leather Dog Leash",       category: "dog-accessories",  price: 650,  comparePrice: null, image: u("1507146426996-ef05306b995a"), featured: false, stock: 120 },
+  { id: "p15", slug: "soft-pet-carrier-bag",           name: "Soft Pet Carrier Bag",            category: "cat-accessories",  price: 2500, comparePrice: 3000, image: u("1592194996308-7b43878e84a6"), featured: false, stock: 33 },
+  { id: "p16", slug: "tetra-fish-food-flakes-200g",    name: "Tetra Fish Food Flakes 200g",     category: "aquarium",         price: 480,  comparePrice: null, image: u("1522069169874-c58ec4b76be5"), featured: false, stock: 45 },
 ]
 
 async function main() {
   console.log("🌱 Seeding database...")
 
+  // ── Categories ──────────────────────────────────────────────
+  const categoryIdBySlug: Record<string, string> = {}
   for (const cat of CATEGORIES) {
-    await prisma.category.upsert({
+    const row = await prisma.category.upsert({
       where:  { slug: cat.slug },
-      update: {},
+      update: { name: cat.name, emoji: cat.emoji, description: cat.description },
       create: cat,
     })
+    categoryIdBySlug[cat.slug] = row.id
   }
   console.log(`✅ ${CATEGORIES.length} categories upserted`)
 
+  // ── Products (with one image + a default variant for stock) ──
+  for (const p of PRODUCTS) {
+    const categoryId = categoryIdBySlug[p.category]
+    if (!categoryId) throw new Error(`Unknown category slug "${p.category}" for ${p.slug}`)
+
+    await prisma.product.upsert({
+      where:  { id: p.id },
+      update: {
+        slug: p.slug, name: p.name, price: p.price,
+        comparePrice: p.comparePrice, categoryId, isFeatured: p.featured, isActive: true,
+        description: `Premium ${p.name} — trusted quality for your pet, available now at a great price.`,
+      },
+      create: {
+        id: p.id, slug: p.slug, name: p.name, price: p.price,
+        comparePrice: p.comparePrice, categoryId, isFeatured: p.featured, isActive: true,
+        description: `Premium ${p.name} — trusted quality for your pet, available now at a great price.`,
+      },
+    })
+
+    // Reset image + variant so re-seeding stays idempotent
+    await prisma.productImage.deleteMany({ where: { productId: p.id } })
+    await prisma.productImage.create({
+      data: { productId: p.id, url: p.image, altText: p.name, order: 0 },
+    })
+
+    await prisma.productVariant.deleteMany({ where: { productId: p.id } })
+    await prisma.productVariant.create({
+      data: { productId: p.id, name: "Default", value: "Standard", stock: p.stock },
+    })
+  }
+  console.log(`✅ ${PRODUCTS.length} products upserted`)
+
+  // ── Admin user ──────────────────────────────────────────────
   const adminEmail    = process.env.ADMIN_EMAIL    ?? "admin@petsection.pk"
   const adminPassword = process.env.ADMIN_PASSWORD ?? "Admin@12345"
   const adminName     = process.env.ADMIN_NAME     ?? "Admin"

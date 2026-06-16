@@ -6,7 +6,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb"
 import Image from "next/image"
 import { ALL_PRODUCTS } from "@/lib/mock-data"
 import brand from "@/config/brand.config"
-import { notFound } from "next/navigation"
+import { notFound, useRouter } from "next/navigation"
 import { use } from "react"
 import { useCartStore } from "@/store/cartStore"
 
@@ -24,10 +24,29 @@ const VARIANTS = [
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
+  const router = useRouter()
   const product = ALL_PRODUCTS.find(p => p.slug === slug)
   if (!product) notFound()
 
   const addItem = useCartStore((s) => s.addItem)
+  const [wishlistBusy, setWishlistBusy] = useState(false)
+
+  async function toggleWishlist() {
+    if (wishlistBusy) return
+    const next = !wishlisted
+    setWishlisted(next)
+    setWishlistBusy(true)
+    try {
+      const res = next
+        ? await fetch("/api/wishlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: product!.id }) })
+        : await fetch(`/api/wishlist/${product!.id}`, { method: "DELETE" })
+      if (res.status === 401) { setWishlisted(false); router.push("/login?next=/account/wishlist") }
+    } catch {
+      setWishlisted(!next)
+    } finally {
+      setWishlistBusy(false)
+    }
+  }
 
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({
     Size: "Medium (3kg)", Flavour: "Chicken",
@@ -195,7 +214,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               </button>
 
               <button
-                onClick={() => setWishlisted(w => !w)}
+                onClick={toggleWishlist}
+                disabled={wishlistBusy}
                 className="h-10 w-10 flex items-center justify-center rounded-xl border border-gray-200 hover:border-danger/50 transition-colors"
                 aria-label="Add to wishlist"
               >

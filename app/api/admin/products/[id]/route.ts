@@ -45,6 +45,20 @@ export async function PUT(
       },
     })
 
+    // Optional stock update — keep a single "Default" variant in sync.
+    if (Number.isFinite(body?.stock)) {
+      const stock    = Math.max(0, Math.trunc(body.stock))
+      const existing = await prisma.productVariant.findFirst({ where: { productId: id } })
+      if (existing) await prisma.productVariant.update({ where: { id: existing.id }, data: { stock } })
+      else          await prisma.productVariant.create({ data: { productId: id, name: "Default", value: "Standard", stock } })
+    }
+
+    // Optional image update — replace the primary image.
+    if (typeof body?.imageUrl === "string" && body.imageUrl.trim()) {
+      await prisma.productImage.deleteMany({ where: { productId: id } })
+      await prisma.productImage.create({ data: { productId: id, url: body.imageUrl.trim(), altText: product.name, order: 0 } })
+    }
+
     return NextResponse.json({ product })
   } catch {
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 })

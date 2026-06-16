@@ -48,8 +48,16 @@ export async function POST(req: NextRequest) {
     }
 
     const { categoryId, ...data } = parsed.data
+    const stock    = Number.isFinite(body?.stock) ? Math.max(0, Math.trunc(body.stock)) : 0
+    const imageUrl = typeof body?.imageUrl === "string" ? body.imageUrl.trim() : ""
+
     const product = await prisma.product.create({
-      data: { ...data, category: { connect: { id: categoryId } } },
+      data: {
+        ...data,
+        category: { connect: { id: categoryId } },
+        variants: { create: { name: "Default", value: "Standard", stock } },
+        ...(imageUrl ? { images: { create: { url: imageUrl, altText: data.name, order: 0 } } } : {}),
+      },
     })
 
     return NextResponse.json({ product }, { status: 201 })

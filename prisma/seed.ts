@@ -96,6 +96,40 @@ async function main() {
   console.log(`✅ ${PRODUCTS.length} products upserted`)
 
   // ── Admin user ──────────────────────────────────────────────
+  // ── Hero slides (only seed if none exist, so admin edits aren't clobbered) ──
+  const heroCount = await prisma.heroSlide.count()
+  if (heroCount === 0) {
+    await prisma.heroSlide.createMany({
+      data: [
+        { order: 0, theme: "navy",   badge: "Pakistan's #1 Pet Store", headline: "Everything Your\nPet Deserves", highlight: "Pet Deserves", subtitle: "Premium food, toys, grooming & accessories for dogs, cats, birds, fish and more — delivered to your door.", cta1Label: "Shop Now", cta1Href: "/products", cta2Label: "Browse Categories", cta2Href: "/categories" },
+        { order: 1, theme: "orange", badge: "🔥 Limited Time Offer", headline: "Summer Sale —\nUp to 40% Off!", highlight: "Up to 40% Off!", subtitle: "Stock up on your pet's favourite food & treats before the deals run out. Shop hundreds of discounted items today.", cta1Label: "Shop the Sale", cta1Href: "/products", cta2Label: "View All Deals", cta2Href: "/products?sort=price-asc" },
+        { order: 2, theme: "cyan",   badge: "✨ Just Landed", headline: "Fresh Products\nJust Arrived", highlight: "Just Arrived", subtitle: "Explore our newest collection — premium nutrition, interactive toys, and stylish accessories your pet will love.", cta1Label: "Shop New Arrivals", cta1Href: "/products", cta2Label: "Explore All", cta2Href: "/categories" },
+        { order: 3, theme: "green",  badge: "🚚 Free Delivery", headline: "Free Delivery on\nOrders ₨2,000+", highlight: "Orders ₨2,000+", subtitle: "No minimum fuss — just shop your pet's essentials and we'll deliver right to your doorstep, anywhere in Pakistan.", cta1Label: "Order Now", cta1Href: "/products", cta2Label: "Learn More", cta2Href: "/categories" },
+      ],
+    })
+    console.log("✅ 4 hero slides seeded")
+  } else {
+    console.log(`ℹ️  ${heroCount} hero slides already exist — skipped`)
+  }
+
+  // ── Site settings (singleton row, seeded from brand defaults if absent) ──
+  await prisma.siteSetting.upsert({
+    where:  { id: "singleton" },
+    update: {},
+    create: {
+      id: "singleton",
+      storeName: "Pet Section", storeTagline: "Everything Your Pet Deserves",
+      storeDescription: "Pakistan's #1 online pet store — dogs, cats, birds & more.",
+      contactEmail: "hello@petsection.pk", contactPhone: "+92 300 0000000",
+      address: "Islamabad, Pakistan",
+      instagram: "https://instagram.com/petsection", facebook: "https://facebook.com/petsection",
+      codEnabled: true,
+      easypaisaEnabled: true, easypaisaTitle: "Pet Section", easypaisaNumber: "0300-1234567",
+      jazzcashEnabled: true,  jazzcashTitle: "Pet Section",  jazzcashNumber: "0320-7654321",
+    },
+  })
+  console.log("✅ Site settings ensured")
+
   const adminEmail    = process.env.ADMIN_EMAIL    ?? "admin@petsection.pk"
   const adminPassword = process.env.ADMIN_PASSWORD ?? "Admin@12345"
   const adminName     = process.env.ADMIN_NAME     ?? "Admin"

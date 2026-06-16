@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import brand from "@/config/brand.config"
 
 const NAV_ITEMS = [
@@ -10,11 +10,19 @@ const NAV_ITEMS = [
   { label: "Orders",     href: "/admin/orders",     icon: "🛍️"  },
   { label: "Customers",  href: "/admin/customers",  icon: "👥" },
   { label: "Categories", href: "/admin/categories", icon: "🏷️"  },
+  { label: "Homepage",   href: "/admin/hero",       icon: "🖼️"  },
   { label: "Settings",   href: "/admin/settings",   icon: "⚙️"  },
 ]
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const router   = useRouter()
+
+  async function signOut() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {})
+    router.push("/login")
+    router.refresh()
+  }
 
   return (
     <aside className="w-56 lg:w-60 bg-secondary text-white flex flex-col sticky top-0 h-screen shrink-0">
@@ -57,7 +65,7 @@ export default function AdminSidebar() {
           <span className="text-base leading-none w-5 text-center">🏠</span>
           View Store
         </Link>
-        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white transition-all duration-150">
+        <button onClick={signOut} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white transition-all duration-150">
           <span className="text-base leading-none w-5 text-center">🚪</span>
           Sign Out
         </button>

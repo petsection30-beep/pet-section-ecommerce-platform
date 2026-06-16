@@ -7,6 +7,10 @@ import PromoBanner from "@/components/store/PromoBanner"
 import NewArrivals from "@/components/store/NewArrivals"
 import TrustBadges from "@/components/store/TrustBadges"
 
+// Hero, Best Sellers, New Arrivals & categories are DB-driven — render fresh
+// so admin changes show up without a rebuild.
+export const dynamic = "force-dynamic"
+
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">

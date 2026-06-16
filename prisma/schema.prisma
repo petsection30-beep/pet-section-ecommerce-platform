@@ -174,3 +174,42 @@ model PasswordReset {
   usedAt    DateTime?
   createdAt DateTime  @default(now())
 }
+
+model HeroSlide {
+  id        String   @id @default(cuid())
+  order     Int      @default(0)
+  badge     String
+  headline  String   // may contain a line break (\n)
+  highlight String   // substring of headline to accent-colour
+  subtitle  String
+  cta1Label String
+  cta1Href  String
+  cta2Label String
+  cta2Href  String
+  theme     String   @default("navy") // preset key, see lib/hero-themes.ts
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSetting {
+  id               String   @id @default("singleton")
+  storeName        String?
+  storeTagline     String?
+  storeDescription String?
+  contactEmail     String?
+  contactPhone     String?
+  address          String?
+  instagram        String?
+  facebook         String?
+  tiktok           String?
+  whatsapp         String?
+  codEnabled       Boolean  @default(true)
+  easypaisaEnabled Boolean  @default(true)
+  easypaisaTitle   String?
+  easypaisaNumber  String?
+  jazzcashEnabled  Boolean  @default(true)
+  jazzcashTitle    String?
+  jazzcashNumber   String?
+  updatedAt        DateTime @updatedAt
+}

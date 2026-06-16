@@ -1,6 +1,9 @@
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 
+// The footer reads store settings from the DB, so store pages render fresh.
+export const dynamic = "force-dynamic"
+
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">

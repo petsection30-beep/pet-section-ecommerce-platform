@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import imageCompression from "browser-image-compression"
 import brand from "@/config/brand.config"
 
 type Category = { id: string; name: string }
@@ -32,6 +33,31 @@ export default function ProductForm({ productId, initial }: { productId?: string
   const [categories, setCategories] = useState<Category[]>([])
   const [error, setError]       = useState("")
   const [saving, setSaving]     = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadErr, setUploadErr] = useState("")
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleFile(file: File | undefined) {
+    if (!file) return
+    setUploadErr("")
+    if (!file.type.startsWith("image/")) { setUploadErr("Please choose an image file"); return }
+    setUploading(true)
+    try {
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 0.3, maxWidthOrHeight: 1000, useWebWorker: true, fileType: "image/webp",
+      })
+      const fd = new FormData()
+      fd.append("file", compressed, "product.webp")
+      const res  = await fetch("/api/upload", { method: "POST", body: fd })
+      const data = await res.json()
+      if (!res.ok) { setUploadErr(data.error ?? "Upload failed"); return }
+      setForm(prev => ({ ...prev, imageUrl: data.url }))
+    } catch {
+      setUploadErr("Could not process that image")
+    } finally {
+      setUploading(false)
+    }
+  }
 
   useEffect(() => {
     fetch("/api/admin/categories")
@@ -148,13 +174,36 @@ export default function ProductForm({ productId, initial }: { productId?: string
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="font-bold text-gray-900 mb-4">Product Image</h2>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Image URL</label>
-            <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} placeholder="https://..." className={inputCls} />
-            <p className="text-xs text-gray-400 mt-1.5">Paste a hosted image URL. Leave blank to use the default icon.</p>
-            {form.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={form.imageUrl} alt="Preview" className="mt-3 size-24 rounded-xl object-cover border border-gray-100" />
-            )}
+
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files?.[0])} />
+
+            <div className="flex items-start gap-4">
+              {/* Preview */}
+              <div className="size-28 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                {form.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl text-gray-300">🐾</span>
+                )}
+              </div>
+
+              {/* Upload control */}
+              <div className="flex-1">
+                <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+                  className="h-10 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60 inline-flex items-center gap-2">
+                  {uploading ? (
+                    <><svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity={0.3}/><path d="M21 12c0-4.97-4.03-9-9-9"/></svg> Uploading…</>
+                  ) : "📷 Upload Image"}
+                </button>
+                {form.imageUrl && (
+                  <button type="button" onClick={() => set("imageUrl", "")} className="ml-2 h-10 px-3 rounded-xl text-sm font-medium text-danger hover:bg-danger/5 transition-colors">Remove</button>
+                )}
+                <p className="text-xs text-gray-400 mt-2">Auto-compressed to WebP (≤300&nbsp;KB). Or paste a URL below.</p>
+                {uploadErr && <p className="text-xs text-danger mt-1">{uploadErr}</p>}
+                <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} placeholder="https://..." className={`${inputCls} mt-2`} />
+              </div>
+            </div>
           </div>
         </div>
 

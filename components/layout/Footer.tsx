@@ -1,5 +1,5 @@
 import Link from "next/link"
-import brand from "@/config/brand.config"
+import { getSettings } from "@/lib/settings"
 
 const SHOP_LINKS  = ["Products", "Categories", "Best Sellers", "New Arrivals", "Sale"]
 const HELP_LINKS  = ["My Account", "Order Tracking", "Returns Policy", "FAQs", "Contact Us"]
@@ -8,7 +8,8 @@ function toHref(label: string) {
   return `/${label.toLowerCase().replace(/\s+/g, "-")}`
 }
 
-export default function Footer() {
+export default async function Footer() {
+  const brand = await getSettings()
   return (
     <footer className="bg-secondary text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">

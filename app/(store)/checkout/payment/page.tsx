@@ -28,8 +28,33 @@ export default function CheckoutPaymentPage() {
   const [txnErr, setTxnErr]   = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError]     = useState("")
+  const [pay, setPay] = useState({
+    codEnabled:       brand.codEnabled,
+    easypaisaEnabled: brand.easypaisaEnabled,
+    easypaisaTitle:   brand.easypaisaTitle,
+    easypaisaNumber:  brand.easypaisaNumber,
+    jazzcashEnabled:  brand.jazzcashEnabled,
+    jazzcashTitle:    brand.jazzcashTitle,
+    jazzcashNumber:   brand.jazzcashNumber,
+  })
 
   useEffect(() => { setMounted(true) }, [])
+
+  // Pull live payment settings (admin-editable) with brand defaults as fallback.
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(d => { if (d.settings) setPay({
+        codEnabled:       d.settings.codEnabled,
+        easypaisaEnabled: d.settings.easypaisaEnabled,
+        easypaisaTitle:   d.settings.easypaisaTitle,
+        easypaisaNumber:  d.settings.easypaisaNumber,
+        jazzcashEnabled:  d.settings.jazzcashEnabled,
+        jazzcashTitle:    d.settings.jazzcashTitle,
+        jazzcashNumber:   d.settings.jazzcashNumber,
+      }) })
+      .catch(() => {})
+  }, [])
 
   // Guard: if address step was skipped, send the user back.
   useEffect(() => {
@@ -94,8 +119,8 @@ export default function CheckoutPaymentPage() {
   }
 
   const paymentInfo = {
-    EASYPAISA: { title: brand.easypaisaTitle, number: brand.easypaisaNumber },
-    JAZZCASH:  { title: brand.jazzcashTitle,  number: brand.jazzcashNumber },
+    EASYPAISA: { title: pay.easypaisaTitle, number: pay.easypaisaNumber },
+    JAZZCASH:  { title: pay.jazzcashTitle,  number: pay.jazzcashNumber },
   }
 
   if (!mounted) return null
@@ -127,7 +152,7 @@ export default function CheckoutPaymentPage() {
 
               <div className="space-y-3">
                 {/* COD */}
-                {brand.codEnabled && (
+                {pay.codEnabled && (
                   <label className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${method === "COD" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
                     <input type="radio" className="mt-0.5 accent-primary" checked={method === "COD"} onChange={() => { setMethod("COD"); setTxnErr("") }} />
                     <div>
@@ -138,7 +163,7 @@ export default function CheckoutPaymentPage() {
                 )}
 
                 {/* EasyPaisa */}
-                {brand.easypaisaEnabled && (
+                {pay.easypaisaEnabled && (
                   <label className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${method === "EASYPAISA" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
                     <input type="radio" className="mt-0.5 accent-primary" checked={method === "EASYPAISA"} onChange={() => { setMethod("EASYPAISA"); setTxnErr("") }} />
                     <div className="flex-1">
@@ -156,7 +181,7 @@ export default function CheckoutPaymentPage() {
                 )}
 
                 {/* JazzCash */}
-                {brand.jazzcashEnabled && (
+                {pay.jazzcashEnabled && (
                   <label className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${method === "JAZZCASH" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
                     <input type="radio" className="mt-0.5 accent-primary" checked={method === "JAZZCASH"} onChange={() => { setMethod("JAZZCASH"); setTxnErr("") }} />
                     <div className="flex-1">

@@ -1,17 +1,14 @@
 import Breadcrumb from "@/components/ui/Breadcrumb"
 import ProductCard from "@/components/store/ProductCard"
-import { ALL_PRODUCTS } from "@/lib/mock-data"
+import { searchProducts } from "@/lib/products"
+
+export const dynamic = "force-dynamic"
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams
-  const query = q.trim().toLowerCase()
+  const query = q.trim()
 
-  const results = query
-    ? ALL_PRODUCTS.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.category.toLowerCase().includes(query)
-      )
-    : []
+  const results = query ? await searchProducts(query) : []
 
   return (
     <div className="bg-page min-h-screen">
@@ -22,7 +19,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {query ? (
             <>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Results for <span className="text-primary">"{q}"</span>
+                Results for <span className="text-primary">&quot;{q}&quot;</span>
               </h1>
               <p className="text-gray-500 text-sm mt-1">{results.length} product{results.length !== 1 ? "s" : ""} found</p>
             </>
@@ -34,7 +31,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         {query && results.length === 0 && (
           <div className="text-center py-24">
             <span className="text-6xl">🔍</span>
-            <p className="mt-4 text-lg font-semibold text-gray-700">No results for "{q}"</p>
+            <p className="mt-4 text-lg font-semibold text-gray-700">No results for &quot;{q}&quot;</p>
             <p className="text-gray-500 text-sm mt-1">Try different keywords or browse our categories</p>
           </div>
         )}

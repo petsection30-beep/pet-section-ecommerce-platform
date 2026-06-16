@@ -10,19 +10,9 @@ const pool    = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma  = new PrismaClient({ adapter })
 
+// Single store-wide category — all products live under "Accessories".
 const CATEGORIES = [
-  { name: "Dog Food",         slug: "dog-food",         emoji: "🐕", description: "Premium nutrition for dogs of all breeds and ages." },
-  { name: "Cat Food",         slug: "cat-food",         emoji: "🐈", description: "Delicious and nutritious meals for your feline friends." },
-  { name: "Bird Food",        slug: "bird-food",        emoji: "🦜", description: "Seed mixes and pellets for parrots, finches, and more." },
-  { name: "Dog Accessories",  slug: "dog-accessories",  emoji: "🦴", description: "Collars, leashes, bowls, beds, and toys for dogs." },
-  { name: "Cat Accessories",  slug: "cat-accessories",  emoji: "🧶", description: "Scratching posts, litter trays, toys and beds for cats." },
-  { name: "Bird Accessories", slug: "bird-accessories", emoji: "🪺", description: "Cages, perches, swings, and accessories for pet birds." },
-  { name: "Aquarium",         slug: "aquarium",         emoji: "🐠", description: "Fish tanks, filters, gravel, and aquarium décor." },
-  { name: "Small Pets",       slug: "small-pets",       emoji: "🐹", description: "Supplies for hamsters, rabbits, guinea pigs, and more." },
-  { name: "Cat Toys",         slug: "cat-toys",         emoji: "🪀", description: "Interactive toys and teasers to keep cats entertained." },
-  { name: "Dog Training",     slug: "dog-training",     emoji: "🎯", description: "Clickers, treats, and tools for training your dog." },
-  { name: "Grooming",         slug: "grooming",         emoji: "✂️", description: "Brushes, clippers, and grooming kits for all pets." },
-  { name: "Accessories",      slug: "accessories",      emoji: "🥣", description: "Bowls, feeders, and everyday pet essentials." },
+  { name: "Accessories", slug: "accessories", emoji: "🛍️", description: "All products." },
 ]
 
 // Unsplash photo URLs — w=600&h=600&fit=crop for square images
@@ -64,9 +54,10 @@ async function main() {
   console.log(`✅ ${CATEGORIES.length} categories upserted`)
 
   // ── Products (with one image + a default variant for stock) ──
+  // Everything lives under the single "accessories" category.
   for (const p of PRODUCTS) {
-    const categoryId = categoryIdBySlug[p.category]
-    if (!categoryId) throw new Error(`Unknown category slug "${p.category}" for ${p.slug}`)
+    const categoryId = categoryIdBySlug["accessories"]
+    if (!categoryId) throw new Error(`Missing "accessories" category`)
 
     await prisma.product.upsert({
       where:  { id: p.id },

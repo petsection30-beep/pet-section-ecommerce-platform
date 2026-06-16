@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useCartStore } from "@/store/cartStore"
 import brand from "@/config/brand.config"
 
@@ -15,23 +15,35 @@ const NAV_LINKS = [
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [storeName, setStoreName]   = useState(brand.storeName)
   const totalItems = useCartStore((s) => s.totalItems())
+
+  // Reflect the admin-editable store name from settings.
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(d => { if (d.settings?.storeName) setStoreName(d.settings.storeName) })
+      .catch(() => {})
+  }, [])
 
   return (
     <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          {/* Logo + brand name */}
+          <Link href="/" className="flex items-center gap-2.5">
             <Image
               src={brand.logoUrl}
-              alt={brand.storeName}
-              width={120}
+              alt={storeName}
+              width={40}
               height={40}
-              className="h-10 w-auto object-contain"
+              className="size-9 sm:size-10 rounded-full object-cover ring-1 ring-gray-100 shrink-0"
               priority
             />
+            <span className="font-bold text-lg sm:text-xl text-secondary tracking-tight leading-none">
+              {storeName}
+            </span>
           </Link>
 
           {/* Desktop nav */}

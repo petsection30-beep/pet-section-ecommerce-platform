@@ -16,9 +16,17 @@ export type StoreSettings = {
   easypaisaEnabled: boolean
   easypaisaTitle: string
   easypaisaNumber: string
-  jazzcashEnabled: boolean
-  jazzcashTitle: string
-  jazzcashNumber: string
+  nayapayEnabled: boolean
+  nayapayTitle: string
+  nayapayNumber: string
+  bankTransferEnabled: boolean
+  bankName: string
+  bankAccountTitle: string
+  bankAccountNumber: string
+  bankIban: string
+  deliveryFee: number
+  freeDeliveryEnabled: boolean
+  freeDeliveryThreshold: number
 }
 
 function pick(value: string | null | undefined, fallback: string): string {
@@ -46,12 +54,20 @@ export async function getSettings(): Promise<StoreSettings> {
       tiktok:    pick(row?.tiktok,    brand.socialLinks.tiktok ?? ""),
       whatsapp:  pick(row?.whatsapp,  brand.socialLinks.whatsapp ?? ""),
     },
-    codEnabled:       row?.codEnabled ?? brand.codEnabled,
-    easypaisaEnabled: row?.easypaisaEnabled ?? brand.easypaisaEnabled,
-    easypaisaTitle:   pick(row?.easypaisaTitle, brand.easypaisaTitle),
-    easypaisaNumber:  pick(row?.easypaisaNumber, brand.easypaisaNumber),
-    jazzcashEnabled:  row?.jazzcashEnabled ?? brand.jazzcashEnabled,
-    jazzcashTitle:    pick(row?.jazzcashTitle, brand.jazzcashTitle),
-    jazzcashNumber:   pick(row?.jazzcashNumber, brand.jazzcashNumber),
+    codEnabled:          row?.codEnabled ?? brand.codEnabled,
+    easypaisaEnabled:    row?.easypaisaEnabled ?? brand.easypaisaEnabled,
+    easypaisaTitle:      pick(row?.easypaisaTitle, brand.easypaisaTitle),
+    easypaisaNumber:     pick(row?.easypaisaNumber, brand.easypaisaNumber),
+    nayapayEnabled:      row?.nayapayEnabled ?? brand.nayapayEnabled,
+    nayapayTitle:        pick(row?.nayapayTitle, brand.nayapayTitle),
+    nayapayNumber:       pick(row?.nayapayNumber, brand.nayapayNumber),
+    bankTransferEnabled: row?.bankTransferEnabled ?? brand.bankTransferEnabled,
+    bankName:            pick(row?.bankName, brand.bankName),
+    bankAccountTitle:    pick(row?.bankAccountTitle, brand.bankAccountTitle),
+    bankAccountNumber:   pick(row?.bankAccountNumber, brand.bankAccountNumber),
+    bankIban:            pick(row?.bankIban, brand.bankIban),
+    deliveryFee:           row?.deliveryFee ?? brand.deliveryFee,
+    freeDeliveryEnabled:   row?.freeDeliveryEnabled ?? brand.freeDeliveryEnabled,
+    freeDeliveryThreshold: row?.freeDeliveryThreshold ?? brand.freeDeliveryThreshold,
   }
 }

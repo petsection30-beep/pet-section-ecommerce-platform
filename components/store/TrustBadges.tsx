@@ -1,3 +1,6 @@
+import { getSettings } from "@/lib/settings"
+import brand from "@/config/brand.config"
+
 const BADGES = [
   {
     icon: (
@@ -6,7 +9,7 @@ const BADGES = [
       </svg>
     ),
     title: "Free Delivery",
-    description: "On orders above ₨ 2,000",
+    description: "On orders above ₨ 2,000",  // overridden at runtime from settings
     iconColor: "text-blue-600",
     iconBg:    "bg-blue-50",
   },
@@ -17,7 +20,7 @@ const BADGES = [
       </svg>
     ),
     title: "Secure Payments",
-    description: "COD, EasyPaisa & JazzCash",
+    description: "COD, EasyPaisa, NayaPay & Bank Transfer",
     iconColor: "text-green-600",
     iconBg:    "bg-green-50",
   },
@@ -45,12 +48,20 @@ const BADGES = [
   },
 ]
 
-export default function TrustBadges() {
+export default async function TrustBadges() {
+  const s = await getSettings()
+  const deliveryDesc = s.freeDeliveryEnabled
+    ? `On orders above ${brand.currencySymbol} ${s.freeDeliveryThreshold.toLocaleString()}`
+    : `Flat ${brand.currencySymbol} ${s.deliveryFee.toLocaleString()} delivery nationwide`
+  const badges = BADGES.map(b => b.title === "Free Delivery"
+    ? { ...b, title: s.freeDeliveryEnabled ? "Free Delivery" : "Fast Delivery", description: deliveryDesc }
+    : b)
+
   return (
     <section className="border-y border-gray-100 bg-surface py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {BADGES.map(badge => (
+          {badges.map(badge => (
             <div key={badge.title} className="flex items-start sm:items-center gap-4">
               <div className={`shrink-0 flex items-center justify-center p-3 rounded-2xl ${badge.iconBg} ${badge.iconColor}`}>
                 {badge.icon}

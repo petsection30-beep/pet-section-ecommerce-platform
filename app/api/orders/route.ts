@@ -4,9 +4,8 @@ import { requireAuth } from "@/lib/auth/session"
 import { sendEmail } from "@/lib/email/send"
 import { orderConfirmationEmail } from "@/lib/email/templates/orderConfirmation"
 import { orderSchema } from "@/lib/validations"
-
-const DELIVERY_FEE   = 200
-const FREE_THRESHOLD = 2000
+import { getSettings } from "@/lib/settings"
+import { computeDeliveryFee } from "@/lib/delivery"
 
 export async function POST(req: NextRequest) {
   const session = await requireAuth()
@@ -23,13 +22,14 @@ export async function POST(req: NextRequest) {
 
     const d = parsed.data
 
-    // Wallet payments require a TXN ID
-    if ((d.paymentMethod === "EASYPAISA" || d.paymentMethod === "JAZZCASH") && !d.txnId?.trim()) {
-      return NextResponse.json({ error: "Transaction ID is required for wallet payments" }, { status: 400 })
+    // Non-COD payments require a TXN ID / payment reference
+    if (d.paymentMethod !== "COD" && !d.txnId?.trim()) {
+      return NextResponse.json({ error: "Transaction ID is required for online payments" }, { status: 400 })
     }
 
+    const settings    = await getSettings()
     const subtotal    = d.items.reduce((s, i) => s + i.unitPrice * i.qty, 0)
-    const deliveryFee = subtotal >= FREE_THRESHOLD ? 0 : DELIVERY_FEE
+    const deliveryFee = computeDeliveryFee(subtotal, settings)
     const total       = subtotal + deliveryFee
 
     const status =

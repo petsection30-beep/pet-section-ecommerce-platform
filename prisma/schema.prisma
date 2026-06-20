@@ -24,7 +24,8 @@ enum OrderStatus {
 enum PaymentMethod {
   COD
   EASYPAISA
-  JAZZCASH
+  NAYAPAY
+  BANK_TRANSFER
 }
 
 model User {
@@ -204,12 +205,20 @@ model SiteSetting {
   facebook         String?
   tiktok           String?
   whatsapp         String?
-  codEnabled       Boolean  @default(true)
-  easypaisaEnabled Boolean  @default(true)
-  easypaisaTitle   String?
-  easypaisaNumber  String?
-  jazzcashEnabled  Boolean  @default(true)
-  jazzcashTitle    String?
-  jazzcashNumber   String?
-  updatedAt        DateTime @updatedAt
+  codEnabled          Boolean  @default(true)
+  easypaisaEnabled    Boolean  @default(true)
+  easypaisaTitle      String?
+  easypaisaNumber     String?
+  nayapayEnabled      Boolean  @default(true)
+  nayapayTitle        String?
+  nayapayNumber       String?
+  bankTransferEnabled Boolean  @default(true)
+  bankName            String?
+  bankAccountTitle    String?
+  bankAccountNumber   String?
+  bankIban            String?
+  deliveryFee           Int     @default(200)
+  freeDeliveryEnabled   Boolean @default(true)
+  freeDeliveryThreshold Int     @default(2000)
+  updatedAt           DateTime @updatedAt
 }

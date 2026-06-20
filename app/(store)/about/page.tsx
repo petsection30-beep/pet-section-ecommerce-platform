@@ -29,7 +29,7 @@ const VALUES = [
   {
     emoji: "💳",
     title: "Flexible Payments",
-    desc: "Pay on delivery, or use EasyPaisa and JazzCash. No hidden charges — the price you see is the price you pay.",
+    desc: "Pay on delivery, or use EasyPaisa, NayaPay and bank transfer. No hidden charges — the price you see is the price you pay.",
   },
   {
     emoji: "↩️",

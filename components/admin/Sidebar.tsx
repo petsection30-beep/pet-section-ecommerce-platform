@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { label: "Settings",   href: "/admin/settings",   icon: "⚙️"  },
 ]
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
   const pathname = usePathname()
   const router   = useRouter()
 
@@ -25,14 +25,21 @@ export default function AdminSidebar() {
   }
 
   return (
-    <aside className="w-56 lg:w-60 bg-secondary text-white flex flex-col sticky top-0 h-screen shrink-0">
+    <aside
+      className={`fixed lg:sticky top-0 z-40 h-screen w-64 lg:w-60 shrink-0 bg-secondary text-white flex flex-col transition-transform duration-200 ease-out ${
+        open ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0`}
+    >
       {/* Brand */}
-      <div className="px-5 py-5 border-b border-white/10">
-        <Link href="/admin/dashboard" className="flex items-center gap-2 font-bold text-lg">
+      <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between gap-2">
+        <Link href="/admin/dashboard" onClick={onClose} className="flex items-center gap-2 font-bold text-lg min-w-0">
           <span className="text-xl leading-none">🐾</span>
-          <span>{brand.storeName}</span>
+          <span className="truncate">{brand.storeName}</span>
         </Link>
-        <p className="text-white/40 text-xs mt-0.5 font-medium tracking-wide uppercase">Admin Panel</p>
+        {/* Close button (mobile only) */}
+        <button onClick={onClose} aria-label="Close menu" className="lg:hidden p-1.5 -mr-1.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+          <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
 
       {/* Navigation */}
@@ -43,6 +50,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 active
                   ? "bg-primary text-white shadow-sm"
@@ -60,6 +68,7 @@ export default function AdminSidebar() {
       <div className="p-3 border-t border-white/10 space-y-0.5">
         <Link
           href="/"
+          onClick={onClose}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white transition-all duration-150"
         >
           <span className="text-base leading-none w-5 text-center">🏠</span>

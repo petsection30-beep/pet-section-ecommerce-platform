@@ -31,6 +31,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   const [notFound, setNotFound] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [toast, setToast]       = useState("")
+  const [editingFee, setEditingFee] = useState(false)
+  const [feeInput, setFeeInput]     = useState("")
+  const [savingFee, setSavingFee]   = useState(false)
 
   useEffect(() => {
     fetch(`/api/admin/orders/${id}`)
@@ -56,6 +59,33 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
       setOrder({ ...order, status: prev }); setToast("Failed to update status")
     } finally {
       setUpdating(false)
+      setTimeout(() => setToast(""), 2200)
+    }
+  }
+
+  async function saveFee() {
+    if (!order || savingFee) return
+    const fee = Math.trunc(Number(feeInput))
+    if (feeInput.trim() === "" || Number.isNaN(fee) || fee < 0) {
+      setToast("Enter a valid amount"); setTimeout(() => setToast(""), 2200); return
+    }
+    setSavingFee(true)
+    try {
+      const res  = await fetch(`/api/admin/orders/${id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deliveryFee: fee }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setToast(data.error ?? "Failed to update delivery fee") }
+      else {
+        setOrder({ ...order, deliveryFee: data.order.deliveryFee, total: data.order.total })
+        setEditingFee(false)
+        setToast("Delivery fee updated")
+      }
+    } catch {
+      setToast("Failed to update delivery fee")
+    } finally {
+      setSavingFee(false)
       setTimeout(() => setToast(""), 2200)
     }
   }
@@ -97,7 +127,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
           {/* Items */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100"><h2 className="font-bold text-gray-900">Order Items</h2></div>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[34rem]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   {["Product", "Qty", "Unit Price", "Total"].map(h => (
@@ -117,10 +148,34 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
               </tbody>
               <tfoot className="border-t border-gray-200 bg-gray-50/30 text-sm">
                 <tr><td colSpan={3} className="px-6 py-2.5 text-right text-gray-500">Subtotal</td><td className="px-6 py-2.5 font-semibold text-gray-900">{brand.currencySymbol} {order.subtotal.toLocaleString()}</td></tr>
-                <tr><td colSpan={3} className="px-6 py-2 text-right text-gray-500">Delivery</td><td className="px-6 py-2 text-gray-700">{order.deliveryFee === 0 ? "FREE" : `${brand.currencySymbol} ${order.deliveryFee.toLocaleString()}`}</td></tr>
+                <tr>
+                  <td colSpan={3} className="px-6 py-2 text-right text-gray-500">Delivery</td>
+                  <td className="px-6 py-2 text-gray-700">
+                    {editingFee ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-gray-400">{brand.currencySymbol}</span>
+                        <input type="number" min={0} autoFocus value={feeInput}
+                          onChange={e => setFeeInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === "Enter") saveFee(); if (e.key === "Escape") setEditingFee(false) }}
+                          className="w-24 h-8 px-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                        <button onClick={saveFee} disabled={savingFee}
+                          className="h-8 px-2.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50">{savingFee ? "…" : "Save"}</button>
+                        <button onClick={() => setEditingFee(false)} disabled={savingFee}
+                          className="h-8 px-2 rounded-lg text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span>{order.deliveryFee === 0 ? "FREE" : `${brand.currencySymbol} ${order.deliveryFee.toLocaleString()}`}</span>
+                        <button onClick={() => { setFeeInput(String(order.deliveryFee)); setEditingFee(true) }}
+                          className="text-xs text-primary font-medium hover:underline">Edit</button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
                 <tr className="border-t border-gray-200"><td colSpan={3} className="px-6 py-3 text-right font-bold text-gray-900">Total</td><td className="px-6 py-3 font-bold text-gray-900 text-base">{brand.currencySymbol} {order.total.toLocaleString()}</td></tr>
               </tfoot>
             </table>
+            </div>
           </div>
 
           {/* Payment verification */}

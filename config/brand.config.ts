@@ -23,9 +23,17 @@ export type BrandConfig = {
   easypaisaEnabled: boolean
   easypaisaTitle: string
   easypaisaNumber: string
-  jazzcashEnabled: boolean
-  jazzcashTitle: string
-  jazzcashNumber: string
+  nayapayEnabled: boolean
+  nayapayTitle: string
+  nayapayNumber: string
+  bankTransferEnabled: boolean
+  bankName: string
+  bankAccountTitle: string
+  bankAccountNumber: string
+  bankIban: string
+  deliveryFee: number
+  freeDeliveryEnabled: boolean
+  freeDeliveryThreshold: number
   currency: string
   currencySymbol: string
   metaKeywords: string
@@ -57,10 +65,19 @@ const brand: BrandConfig = {
   codEnabled:       true,
   easypaisaEnabled: true,
   easypaisaTitle:   "Pet Section",
-  easypaisaNumber:  "0300-1234567",
-  jazzcashEnabled:  true,
-  jazzcashTitle:    "Pet Section",
-  jazzcashNumber:   "0320-7654321",
+  easypaisaNumber:  "03103270033",
+  nayapayEnabled:   true,
+  nayapayTitle:     "Pet Section",
+  nayapayNumber:    "03103270033",
+  bankTransferEnabled: true,
+  bankName:         "Bank AL Habib",
+  bankAccountTitle: "Pet Section",
+  bankAccountNumber:"00170095009687016",
+  bankIban:         "",
+
+  deliveryFee:           200,
+  freeDeliveryEnabled:   true,
+  freeDeliveryThreshold: 2000,
 
   currency:       "PKR",
   currencySymbol: "₨",

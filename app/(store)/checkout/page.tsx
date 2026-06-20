@@ -6,12 +6,11 @@ import { useRouter } from "next/navigation"
 import brand from "@/config/brand.config"
 import { useCartStore } from "@/store/cartStore"
 import { useCheckoutStore } from "@/store/checkoutStore"
+import { computeDeliveryFee } from "@/lib/delivery"
+import { useDeliveryConfig } from "@/lib/useDeliveryConfig"
 
 const PROVINCES = ["Punjab", "Sindh", "KPK", "Balochistan", "Islamabad Capital Territory", "Gilgit-Baltistan", "AJK"]
 const PROGRESS_STEPS = ["Address", "Payment", "Confirmation"]
-
-const DELIVERY_FEE   = 200
-const FREE_THRESHOLD = 2000
 
 function sanitizePhone(v: string) {
   return v.replace(/[\s-]/g, "")
@@ -44,8 +43,9 @@ export default function CheckoutAddressPage() {
     }
   }, [savedAddress])
 
+  const delivery    = useDeliveryConfig()
   const subtotal    = totalPrice()
-  const deliveryFee = subtotal >= FREE_THRESHOLD ? 0 : DELIVERY_FEE
+  const deliveryFee = computeDeliveryFee(subtotal, delivery)
   const total       = subtotal + deliveryFee
   const itemCount   = items.reduce((s, i) => s + i.qty, 0)
 

@@ -5,7 +5,7 @@ export type OrderStatus =
   | "PENDING_COD" | "PENDING_VERIFICATION" | "CONFIRMED"
   | "SHIPPED"     | "DELIVERED"            | "REJECTED" | "CANCELLED"
 
-export type PaymentMethod = "COD" | "EASYPAISA" | "JAZZCASH"
+export type PaymentMethod = "COD" | "EASYPAISA" | "NAYAPAY" | "BANK_TRANSFER"
 
 export const STATUS_META: Record<OrderStatus, { label: string; badge: string }> = {
   PENDING_COD:          { label: "Pending (COD)",        badge: "text-warning bg-warning/10" },
@@ -26,9 +26,10 @@ export function statusBadge(status: OrderStatus): string {
 }
 
 export const PAYMENT_LABEL: Record<PaymentMethod, string> = {
-  COD:       "Cash on Delivery",
-  EASYPAISA: "EasyPaisa",
-  JAZZCASH:  "JazzCash",
+  COD:           "Cash on Delivery",
+  EASYPAISA:     "EasyPaisa",
+  NAYAPAY:       "NayaPay",
+  BANK_TRANSFER: "Bank Transfer",
 }
 
 export type TimelineStep = { label: string; state: "done" | "active" | "pending" }

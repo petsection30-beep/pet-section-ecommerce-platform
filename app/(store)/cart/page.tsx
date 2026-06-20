@@ -2,16 +2,17 @@
 
 import Link from "next/link"
 import { useCartStore } from "@/store/cartStore"
+import { computeDeliveryFee } from "@/lib/delivery"
+import { useDeliveryConfig } from "@/lib/useDeliveryConfig"
 import brand from "@/config/brand.config"
-
-const DELIVERY_FEE   = 200
-const FREE_THRESHOLD = 2000
 
 export default function CartPage() {
   const { items, removeItem, updateQty, totalPrice } = useCartStore()
-  const subtotal    = totalPrice()
-  const deliveryFee = subtotal >= FREE_THRESHOLD ? 0 : DELIVERY_FEE
-  const total       = subtotal + deliveryFee
+  const delivery     = useDeliveryConfig()
+  const subtotal     = totalPrice()
+  const deliveryFee  = computeDeliveryFee(subtotal, delivery)
+  const total        = subtotal + deliveryFee
+  const showFreeHint = delivery.freeDeliveryEnabled && subtotal < delivery.freeDeliveryThreshold
 
   if (items.length === 0) {
     return (
@@ -73,9 +74,9 @@ export default function CartPage() {
                   {deliveryFee === 0 ? "FREE" : `${brand.currencySymbol} ${deliveryFee}`}
                 </span>
               </div>
-              {subtotal < FREE_THRESHOLD && (
+              {showFreeHint && (
                 <p className="text-xs text-primary bg-primary/5 rounded-xl px-3 py-2">
-                  Add {brand.currencySymbol} {(FREE_THRESHOLD - subtotal).toLocaleString()} more for free delivery!
+                  Add {brand.currencySymbol} {(delivery.freeDeliveryThreshold - subtotal).toLocaleString()} more for free delivery!
                 </p>
               )}
               <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900">

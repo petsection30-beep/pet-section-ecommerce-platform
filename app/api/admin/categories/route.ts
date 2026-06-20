@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth/session"
+import { categoryIcon } from "@/lib/category-icon"
 import { z } from "zod"
 
 const categorySchema = z.object({
@@ -33,8 +34,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
   }
 
+  // Ensure the icon matches the name: derive it whenever none was set or the
+  // generic default paw came through.
+  const emoji = !parsed.data.emoji || parsed.data.emoji === "🐾"
+    ? categoryIcon(parsed.data.name)
+    : parsed.data.emoji
+
   try {
-    const category = await prisma.category.create({ data: parsed.data })
+    const category = await prisma.category.create({ data: { ...parsed.data, emoji } })
     return NextResponse.json({ category }, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Category already exists" }, { status: 409 })

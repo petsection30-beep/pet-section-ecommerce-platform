@@ -6,12 +6,11 @@ import { useRouter } from "next/navigation"
 import brand from "@/config/brand.config"
 import { useCartStore } from "@/store/cartStore"
 import { useCheckoutStore } from "@/store/checkoutStore"
+import { computeDeliveryFee } from "@/lib/delivery"
 
 const PROGRESS_STEPS = ["Address", "Payment", "Confirmation"]
-const DELIVERY_FEE   = 200
-const FREE_THRESHOLD = 2000
 
-type Method = "COD" | "EASYPAISA" | "JAZZCASH"
+type Method = "COD" | "EASYPAISA" | "NAYAPAY" | "BANK_TRANSFER"
 
 export default function CheckoutPaymentPage() {
   const router = useRouter()
@@ -29,13 +28,21 @@ export default function CheckoutPaymentPage() {
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError]     = useState("")
   const [pay, setPay] = useState({
-    codEnabled:       brand.codEnabled,
-    easypaisaEnabled: brand.easypaisaEnabled,
-    easypaisaTitle:   brand.easypaisaTitle,
-    easypaisaNumber:  brand.easypaisaNumber,
-    jazzcashEnabled:  brand.jazzcashEnabled,
-    jazzcashTitle:    brand.jazzcashTitle,
-    jazzcashNumber:   brand.jazzcashNumber,
+    codEnabled:          brand.codEnabled,
+    easypaisaEnabled:    brand.easypaisaEnabled,
+    easypaisaTitle:      brand.easypaisaTitle,
+    easypaisaNumber:     brand.easypaisaNumber,
+    nayapayEnabled:      brand.nayapayEnabled,
+    nayapayTitle:        brand.nayapayTitle,
+    nayapayNumber:       brand.nayapayNumber,
+    bankTransferEnabled: brand.bankTransferEnabled,
+    bankName:            brand.bankName,
+    bankAccountTitle:    brand.bankAccountTitle,
+    bankAccountNumber:   brand.bankAccountNumber,
+    bankIban:            brand.bankIban,
+    deliveryFee:           brand.deliveryFee,
+    freeDeliveryEnabled:   brand.freeDeliveryEnabled,
+    freeDeliveryThreshold: brand.freeDeliveryThreshold,
   })
 
   useEffect(() => { setMounted(true) }, [])
@@ -45,13 +52,21 @@ export default function CheckoutPaymentPage() {
     fetch("/api/settings")
       .then(r => r.json())
       .then(d => { if (d.settings) setPay({
-        codEnabled:       d.settings.codEnabled,
-        easypaisaEnabled: d.settings.easypaisaEnabled,
-        easypaisaTitle:   d.settings.easypaisaTitle,
-        easypaisaNumber:  d.settings.easypaisaNumber,
-        jazzcashEnabled:  d.settings.jazzcashEnabled,
-        jazzcashTitle:    d.settings.jazzcashTitle,
-        jazzcashNumber:   d.settings.jazzcashNumber,
+        codEnabled:          d.settings.codEnabled,
+        easypaisaEnabled:    d.settings.easypaisaEnabled,
+        easypaisaTitle:      d.settings.easypaisaTitle,
+        easypaisaNumber:     d.settings.easypaisaNumber,
+        nayapayEnabled:      d.settings.nayapayEnabled,
+        nayapayTitle:        d.settings.nayapayTitle,
+        nayapayNumber:       d.settings.nayapayNumber,
+        bankTransferEnabled: d.settings.bankTransferEnabled,
+        bankName:            d.settings.bankName,
+        bankAccountTitle:    d.settings.bankAccountTitle,
+        bankAccountNumber:   d.settings.bankAccountNumber,
+        bankIban:            d.settings.bankIban,
+        deliveryFee:           d.settings.deliveryFee,
+        freeDeliveryEnabled:   d.settings.freeDeliveryEnabled,
+        freeDeliveryThreshold: d.settings.freeDeliveryThreshold,
       }) })
       .catch(() => {})
   }, [])
@@ -62,14 +77,14 @@ export default function CheckoutPaymentPage() {
   }, [mounted, address, router])
 
   const subtotal    = totalPrice()
-  const deliveryFee = subtotal >= FREE_THRESHOLD ? 0 : DELIVERY_FEE
+  const deliveryFee = computeDeliveryFee(subtotal, pay)
   const total       = subtotal + deliveryFee
 
   async function handlePlaceOrder(e: React.FormEvent) {
     e.preventDefault()
     setApiError("")
 
-    if ((method === "EASYPAISA" || method === "JAZZCASH") && !txnId.trim()) {
+    if (method !== "COD" && !txnId.trim()) {
       setTxnErr("Transaction ID is required"); return
     }
     if (!address || items.length === 0) {
@@ -120,7 +135,7 @@ export default function CheckoutPaymentPage() {
 
   const paymentInfo = {
     EASYPAISA: { title: pay.easypaisaTitle, number: pay.easypaisaNumber },
-    JAZZCASH:  { title: pay.jazzcashTitle,  number: pay.jazzcashNumber },
+    NAYAPAY:   { title: pay.nayapayTitle,   number: pay.nayapayNumber },
   }
 
   if (!mounted) return null
@@ -180,18 +195,38 @@ export default function CheckoutPaymentPage() {
                   </label>
                 )}
 
-                {/* JazzCash */}
-                {pay.jazzcashEnabled && (
-                  <label className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${method === "JAZZCASH" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" className="mt-0.5 accent-primary" checked={method === "JAZZCASH"} onChange={() => { setMethod("JAZZCASH"); setTxnErr("") }} />
+                {/* NayaPay */}
+                {pay.nayapayEnabled && (
+                  <label className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${method === "NAYAPAY" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" className="mt-0.5 accent-primary" checked={method === "NAYAPAY"} onChange={() => { setMethod("NAYAPAY"); setTxnErr("") }} />
                     <div className="flex-1">
-                      <p className="font-semibold text-sm text-gray-900">🔴 JazzCash</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Send payment via JazzCash mobile wallet.</p>
-                      {method === "JAZZCASH" && (
-                        <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-100 text-xs space-y-1">
-                          <p className="font-semibold text-red-800">Send {brand.currencySymbol} {total.toLocaleString()} to:</p>
-                          <p className="text-red-700">Account: <span className="font-mono font-bold">{paymentInfo.JAZZCASH.number}</span></p>
-                          <p className="text-red-700">Title: <span className="font-semibold">{paymentInfo.JAZZCASH.title}</span></p>
+                      <p className="font-semibold text-sm text-gray-900">💜 NayaPay</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Send payment via NayaPay wallet.</p>
+                      {method === "NAYAPAY" && (
+                        <div className="mt-3 p-3 rounded-xl bg-purple-50 border border-purple-100 text-xs space-y-1">
+                          <p className="font-semibold text-purple-800">Send {brand.currencySymbol} {total.toLocaleString()} to:</p>
+                          <p className="text-purple-700">Account: <span className="font-mono font-bold">{paymentInfo.NAYAPAY.number}</span></p>
+                          <p className="text-purple-700">Title: <span className="font-semibold">{paymentInfo.NAYAPAY.title}</span></p>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                )}
+
+                {/* Bank Transfer */}
+                {pay.bankTransferEnabled && (
+                  <label className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${method === "BANK_TRANSFER" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" className="mt-0.5 accent-primary" checked={method === "BANK_TRANSFER"} onChange={() => { setMethod("BANK_TRANSFER"); setTxnErr("") }} />
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm text-gray-900">🏦 Bank Transfer</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Transfer to our bank account via app or branch.</p>
+                      {method === "BANK_TRANSFER" && (
+                        <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs space-y-1">
+                          <p className="font-semibold text-blue-800">Transfer {brand.currencySymbol} {total.toLocaleString()} to:</p>
+                          <p className="text-blue-700">Bank: <span className="font-semibold">{pay.bankName}</span></p>
+                          <p className="text-blue-700">Title: <span className="font-semibold">{pay.bankAccountTitle}</span></p>
+                          <p className="text-blue-700">Account #: <span className="font-mono font-bold">{pay.bankAccountNumber}</span></p>
+                          {pay.bankIban && <p className="text-blue-700">IBAN: <span className="font-mono font-bold">{pay.bankIban}</span></p>}
                         </div>
                       )}
                     </div>
@@ -199,8 +234,8 @@ export default function CheckoutPaymentPage() {
                 )}
               </div>
 
-              {/* TXN ID input for wallet payments */}
-              {(method === "EASYPAISA" || method === "JAZZCASH") && (
+              {/* TXN ID / reference input for non-COD payments */}
+              {method !== "COD" && (
                 <div className="mt-5">
                   <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Transaction ID *</label>
                   <input

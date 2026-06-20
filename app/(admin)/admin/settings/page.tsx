@@ -8,7 +8,9 @@ type Settings = {
   instagram: string; facebook: string; tiktok: string; whatsapp: string
   codEnabled: boolean
   easypaisaEnabled: boolean; easypaisaTitle: string; easypaisaNumber: string
-  jazzcashEnabled: boolean;  jazzcashTitle: string;  jazzcashNumber: string
+  nayapayEnabled: boolean;   nayapayTitle: string;   nayapayNumber: string
+  bankTransferEnabled: boolean; bankName: string; bankAccountTitle: string; bankAccountNumber: string; bankIban: string
+  deliveryFee: number; freeDeliveryEnabled: boolean; freeDeliveryThreshold: number
 }
 
 const EMPTY: Settings = {
@@ -17,7 +19,9 @@ const EMPTY: Settings = {
   instagram: "", facebook: "", tiktok: "", whatsapp: "",
   codEnabled: true,
   easypaisaEnabled: true, easypaisaTitle: "", easypaisaNumber: "",
-  jazzcashEnabled: true, jazzcashTitle: "", jazzcashNumber: "",
+  nayapayEnabled: true,   nayapayTitle: "",   nayapayNumber: "",
+  bankTransferEnabled: true, bankName: "", bankAccountTitle: "", bankAccountNumber: "", bankIban: "",
+  deliveryFee: 200, freeDeliveryEnabled: true, freeDeliveryThreshold: 2000,
 }
 
 export default function AdminSettingsPage() {
@@ -100,14 +104,52 @@ export default function AdminSettingsPage() {
             </div>
             <div className="p-4 rounded-xl border border-gray-200 space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900 flex items-center gap-2"><span className="text-lg">📲</span> JazzCash</p>
-                <Toggle label="" desc="" on={form.jazzcashEnabled} onChange={v => set("jazzcashEnabled", v)} compact />
+                <p className="text-sm font-semibold text-gray-900 flex items-center gap-2"><span className="text-lg">💜</span> NayaPay</p>
+                <Toggle label="" desc="" on={form.nayapayEnabled} onChange={v => set("nayapayEnabled", v)} compact />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Account Title"><input className={inputCls} value={form.jazzcashTitle} onChange={e => set("jazzcashTitle", e.target.value)} /></Field>
-                <Field label="Account Number"><input className={inputCls} value={form.jazzcashNumber} onChange={e => set("jazzcashNumber", e.target.value)} /></Field>
+                <Field label="Account Title"><input className={inputCls} value={form.nayapayTitle} onChange={e => set("nayapayTitle", e.target.value)} /></Field>
+                <Field label="Account Number"><input className={inputCls} value={form.nayapayNumber} onChange={e => set("nayapayNumber", e.target.value)} /></Field>
               </div>
             </div>
+            <div className="p-4 rounded-xl border border-gray-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-gray-900 flex items-center gap-2"><span className="text-lg">🏦</span> Bank Transfer</p>
+                <Toggle label="" desc="" on={form.bankTransferEnabled} onChange={v => set("bankTransferEnabled", v)} compact />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Bank Name"><input className={inputCls} value={form.bankName} onChange={e => set("bankName", e.target.value)} /></Field>
+                <Field label="Account Title"><input className={inputCls} value={form.bankAccountTitle} onChange={e => set("bankAccountTitle", e.target.value)} /></Field>
+                <Field label="Account Number"><input className={inputCls} value={form.bankAccountNumber} onChange={e => set("bankAccountNumber", e.target.value)} /></Field>
+                <Field label="IBAN"><input className={inputCls} value={form.bankIban} onChange={e => set("bankIban", e.target.value)} /></Field>
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* Delivery */}
+        <Section title="Delivery Charges" emoji="🚚">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label={`Delivery Fee (${"₨"})`}>
+                <input type="number" min={0} className={inputCls} value={form.deliveryFee}
+                  onChange={e => set("deliveryFee", e.target.value === "" ? 0 : Math.max(0, Math.trunc(Number(e.target.value))))} />
+              </Field>
+              <Field label={`Free Delivery Over (${"₨"})`}>
+                <input type="number" min={0} disabled={!form.freeDeliveryEnabled}
+                  className={`${inputCls} disabled:opacity-50 disabled:bg-gray-50`} value={form.freeDeliveryThreshold}
+                  onChange={e => set("freeDeliveryThreshold", e.target.value === "" ? 0 : Math.max(0, Math.trunc(Number(e.target.value))))} />
+              </Field>
+            </div>
+            <Toggle label="Enable Free Delivery Threshold"
+              desc="When on, orders at or above the amount above ship free. When off, the delivery fee always applies."
+              on={form.freeDeliveryEnabled} onChange={v => set("freeDeliveryEnabled", v)} />
+            <p className="text-xs text-gray-500 bg-gray-50 rounded-xl px-3 py-2.5 leading-relaxed">
+              Customers pay <span className="font-semibold text-gray-700">{"₨"} {form.deliveryFee.toLocaleString()}</span> delivery
+              {form.freeDeliveryEnabled
+                ? <> on orders under <span className="font-semibold text-gray-700">{"₨"} {form.freeDeliveryThreshold.toLocaleString()}</span> — free above that.</>
+                : <> on every order (free-delivery threshold is off).</>}
+            </p>
           </div>
         </Section>
 
@@ -119,14 +161,6 @@ export default function AdminSettingsPage() {
             <Field label="TikTok"><input className={inputCls} value={form.tiktok} onChange={e => set("tiktok", e.target.value)} placeholder="https://tiktok.com/..." /></Field>
             <Field label="WhatsApp"><input className={inputCls} value={form.whatsapp} onChange={e => set("whatsapp", e.target.value)} placeholder="https://wa.me/..." /></Field>
           </div>
-        </Section>
-
-        {/* Theme / email note */}
-        <Section title="Theme & Email" emoji="🎨">
-          <p className="text-sm text-gray-500 leading-relaxed">
-            Brand colours, fonts, and logo are managed in <code className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 text-xs">config/brand.config.ts</code> (white-label, code-driven).
-            SMTP email credentials are configured via environment variables.
-          </p>
         </Section>
 
         <div className="flex justify-end">

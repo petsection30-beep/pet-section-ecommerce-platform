@@ -54,7 +54,7 @@ export const productSchema = z.object({
 })
 
 export const orderSchema = z.object({
-  paymentMethod: z.enum(["COD", "EASYPAISA", "JAZZCASH"]),
+  paymentMethod: z.enum(["COD", "EASYPAISA", "NAYAPAY", "BANK_TRANSFER"]),
   txnId:         z.string().optional(),
   fullName:      z.string().min(2),
   phone:         pkPhone,

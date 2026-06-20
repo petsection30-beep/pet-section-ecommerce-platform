@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/ui/Breadcrumb"
 import brand from "@/config/brand.config"
 import { useCartStore } from "@/store/cartStore"
+import { useDeliveryConfig } from "@/lib/useDeliveryConfig"
 
 export type DetailReview = { id: string; author: string; rating: number; date: string; body: string }
 export type DetailVariantGroup = { name: string; options: { id: string; value: string; stock: number }[] }
@@ -17,8 +18,9 @@ export type DetailProduct = {
 }
 
 export default function ProductDetailClient({ product }: { product: DetailProduct }) {
-  const router  = useRouter()
-  const addItem = useCartStore((s) => s.addItem)
+  const router   = useRouter()
+  const addItem  = useCartStore((s) => s.addItem)
+  const delivery = useDeliveryConfig()
 
   const [activeImg, setActiveImg] = useState(0)
   const [selected, setSelected] = useState<Record<string, string>>(
@@ -155,8 +157,10 @@ export default function ProductDetailClient({ product }: { product: DetailProduc
 
             <div className="rounded-2xl border border-gray-100 divide-y divide-gray-100 bg-surface">
               {[
-                { icon: "🚚", text: "Free delivery on orders above ₨ 2,000" },
-                { icon: "💳", text: "Pay via COD, EasyPaisa, or JazzCash" },
+                { icon: "🚚", text: delivery.freeDeliveryEnabled
+                    ? `Free delivery on orders above ${brand.currencySymbol} ${delivery.freeDeliveryThreshold.toLocaleString()}`
+                    : `${brand.currencySymbol} ${delivery.deliveryFee.toLocaleString()} flat delivery nationwide` },
+                { icon: "💳", text: "Pay via COD, EasyPaisa, NayaPay, or Bank Transfer" },
                 { icon: "↩️", text: "7-day easy returns" },
               ].map(item => (
                 <div key={item.text} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600">

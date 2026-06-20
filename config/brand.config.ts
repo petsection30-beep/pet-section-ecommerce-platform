@@ -60,6 +60,7 @@ const brand: BrandConfig = {
   socialLinks: {
     instagram: "https://instagram.com/petsection",
     facebook:  "https://facebook.com/petsection",
+    whatsapp:  "+923103270033",
   },
 
   codEnabled:       true,

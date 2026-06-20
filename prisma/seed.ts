@@ -114,7 +114,7 @@ async function main() {
       contactEmail: "hello@petsection.pk", contactPhone: "+92 300 0000000",
       address: "Islamabad, Pakistan",
       instagram: "https://instagram.com/petsection", facebook: "https://facebook.com/petsection",
-      whatsapp: "+92 300 0000000",
+      whatsapp: "+923103270033",
       codEnabled: true,
       easypaisaEnabled: true, easypaisaTitle: "Pet Section", easypaisaNumber: "03103270033",
       nayapayEnabled: true,   nayapayTitle: "Pet Section",   nayapayNumber: "03103270033",

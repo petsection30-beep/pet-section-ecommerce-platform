@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Poppins } from "next/font/google"
 import "./globals.css"
 import brand from "@/config/brand.config"
+import WhatsAppButton from "@/components/store/WhatsAppButton"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-page font-sans text-gray-900 antialiased">
         {children}
+        <WhatsAppButton />
       </body>
     </html>
   )

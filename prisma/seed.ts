@@ -20,10 +20,10 @@ const u = (id: string) =>
   `https://images.unsplash.com/photo-${id}?w=600&h=600&fit=crop&q=80`
 
 const PRODUCTS = [
-  { id: "p1",  slug: "royal-canin-adult-dog-food-3kg", name: "Royal Canin Adult Dog Food 3kg", category: "dog-food",         price: 3500, comparePrice: 4200, image: u("1568640347023-a616a30bc3bd"), featured: true,  stock: 40 },
-  { id: "p2",  slug: "whiskas-tuna-cat-food-12-pack",  name: "Whiskas Tuna Cat Food — 12 Pack", category: "cat-food",         price: 1200, comparePrice: 1500, image: u("1514888286974-6c03e2ca1dba"), featured: true,  stock: 60 },
-  { id: "p3",  slug: "premium-bird-seed-mix-2kg",      name: "Premium Bird Seed Mix 2kg",       category: "bird-food",        price: 850,  comparePrice: null, image: u("1552728089-57bdde30beb3"),  featured: true,  stock: 35 },
-  { id: "p4",  slug: "aquarium-led-strip-light-60cm",  name: "Aquarium LED Strip Light 60cm",   category: "aquarium",         price: 2200, comparePrice: 2800, image: u("1535591273668-578e31182c4f"), featured: true,  stock: 25 },
+  { id: "p1",  slug: "royal-canin-adult-dog-food-3kg", name: "Royal Canin Adult Dog Food 3kg", category: "dog-food",         price: 3500, comparePrice: 4200, image: u("1568640347023-a616a30bc3bd"), featured: false, stock: 40 },
+  { id: "p2",  slug: "whiskas-tuna-cat-food-12-pack",  name: "Whiskas Tuna Cat Food — 12 Pack", category: "cat-food",         price: 1200, comparePrice: 1500, image: u("1514888286974-6c03e2ca1dba"), featured: false, stock: 60 },
+  { id: "p3",  slug: "premium-bird-seed-mix-2kg",      name: "Premium Bird Seed Mix 2kg",       category: "bird-food",        price: 850,  comparePrice: null, image: u("1552728089-57bdde30beb3"),  featured: false, stock: 35 },
+  { id: "p4",  slug: "aquarium-led-strip-light-60cm",  name: "Aquarium LED Strip Light 60cm",   category: "aquarium",         price: 2200, comparePrice: 2800, image: u("1535591273668-578e31182c4f"), featured: false, stock: 25 },
   { id: "p5",  slug: "orthopedic-dog-bed-large",       name: "Orthopedic Dog Bed Large",        category: "dog-accessories",  price: 4500, comparePrice: null, image: u("1548199973-03cce0bbc87b"),  featured: false, stock: 18 },
   { id: "p6",  slug: "interactive-cat-toy-set",        name: "Interactive Cat Toy Set",         category: "cat-toys",         price: 890,  comparePrice: 1100, image: u("1574158622682-e40e69881006"), featured: false, stock: 50 },
   { id: "p7",  slug: "stainless-steel-pet-bowl-set",   name: "Stainless Steel Pet Bowl Set",    category: "accessories",      price: 450,  comparePrice: null, image: u("1601758228041-f3b2795255f1"), featured: false, stock: 80 },

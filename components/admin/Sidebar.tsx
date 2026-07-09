@@ -5,13 +5,14 @@ import { usePathname, useRouter } from "next/navigation"
 import brand from "@/config/brand.config"
 
 const NAV_ITEMS = [
-  { label: "Dashboard",  href: "/admin/dashboard",  icon: "📊" },
-  { label: "Products",   href: "/admin/products",   icon: "📦" },
-  { label: "Orders",     href: "/admin/orders",     icon: "🛍️"  },
-  { label: "Customers",  href: "/admin/customers",  icon: "👥" },
-  { label: "Categories", href: "/admin/categories", icon: "🏷️"  },
-  { label: "Homepage",   href: "/admin/hero",       icon: "🖼️"  },
-  { label: "Settings",   href: "/admin/settings",   icon: "⚙️"  },
+  { label: "Dashboard",    href: "/admin/dashboard",    icon: "📊" },
+  { label: "Products",     href: "/admin/products",     icon: "📦" },
+  { label: "Best Sellers", href: "/admin/best-sellers", icon: "⭐" },
+  { label: "Orders",       href: "/admin/orders",       icon: "🛍️"  },
+  { label: "Customers",    href: "/admin/customers",    icon: "👥" },
+  { label: "Categories",   href: "/admin/categories",   icon: "🏷️"  },
+  { label: "Homepage",     href: "/admin/hero",         icon: "🖼️"  },
+  { label: "Settings",     href: "/admin/settings",     icon: "⚙️"  },
 ]
 
 export default function AdminSidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {

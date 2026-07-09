@@ -7,7 +7,7 @@ import brand from "@/config/brand.config"
 
 type AdminProduct = {
   id: string; name: string; slug: string; price: number; comparePrice: number | null
-  isActive: boolean
+  isActive: boolean; isFeatured: boolean
   category: { name: string; slug: string }
   images: { url: string }[]
   variants: { stock: number }[]
@@ -39,6 +39,17 @@ export default function AdminProductsPage() {
     (category === "All" || p.category.name === category) &&
     (!query || p.name.toLowerCase().includes(query.toLowerCase()))
   )
+
+  async function toggleFeatured(id: string, current: boolean) {
+    try {
+      await fetch(`/api/admin/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeatured: !current }),
+      })
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, isFeatured: !current } : p))
+    } catch {}
+  }
 
   async function remove(id: string, name: string) {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
@@ -78,14 +89,14 @@ export default function AdminProductsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
-                {["Product", "Category", "Price", "Stock", "Status", "Actions"].map(h => (
+                {["Product", "Category", "Price", "Stock", "Featured", "Status", "Actions"].map(h => (
                   <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={6} className="px-5 py-16 text-center"><svg className="size-6 animate-spin text-primary inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity={0.3}/><path d="M21 12c0-4.97-4.03-9-9-9"/></svg></td></tr>
+                <tr><td colSpan={7} className="px-5 py-16 text-center"><svg className="size-6 animate-spin text-primary inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity={0.3}/><path d="M21 12c0-4.97-4.03-9-9-9"/></svg></td></tr>
               ) : filtered.map(p => {
                 const stock = p.variants.reduce((s, v) => s + v.stock, 0)
                 return (
@@ -112,6 +123,11 @@ export default function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
+                      <button onClick={() => toggleFeatured(p.id, p.isFeatured)} className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-all ${p.isFeatured ? "bg-primary/10 text-primary hover:bg-primary/20" : "bg-gray-100 text-gray-400 hover:bg-gray-200"}`}>
+                        {p.isFeatured ? "★ Featured" : "☆ Set Featured"}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3.5">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.isActive ? "bg-success/10 text-success" : "bg-gray-100 text-gray-500"}`}>{p.isActive ? "Active" : "Inactive"}</span>
                     </td>
                     <td className="px-5 py-3.5">
@@ -125,7 +141,7 @@ export default function AdminProductsPage() {
                 )
               })}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="px-5 py-16 text-center text-gray-400 text-sm">No products found.</td></tr>
+                <tr><td colSpan={7} className="px-5 py-16 text-center text-gray-400 text-sm">No products found.</td></tr>
               )}
             </tbody>
           </table>

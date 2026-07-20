@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const inStock  = searchParams.get("inStock")
     const featured = searchParams.get("featured")
     const page     = Math.max(1, Number(searchParams.get("page") ?? 1))
-    const limit    = Math.min(48, Math.max(1, Number(searchParams.get("limit") ?? 24)))
+    const limit    = Math.min(1000, Math.max(1, Number(searchParams.get("limit") ?? 24)))
 
     const where = {
       isActive: true,

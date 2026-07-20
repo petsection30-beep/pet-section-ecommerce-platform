@@ -28,7 +28,7 @@ export default function HeroBanner() {
         {/* Live badge */}
         <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 text-primary rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wide mb-8">
           <span className="size-1.5 rounded-full bg-primary animate-pulse inline-block" />
-          Pakistan's #1 Pet Store
+          Pakistan&apos;s #1 Pet Store
         </div>
 
         {/* Headline */}

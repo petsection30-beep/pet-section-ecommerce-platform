@@ -18,11 +18,11 @@ function ConfirmationInner() {
   const params  = useSearchParams()
   const orderId = params.get("orderId")
   const [order, setOrder]     = useState<Order | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(false)
+  const [loading, setLoading] = useState(Boolean(orderId))
+  const [error, setError]     = useState(!orderId)
 
   useEffect(() => {
-    if (!orderId) { setLoading(false); setError(true); return }
+    if (!orderId) return
     fetch(`/api/orders/${orderId}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(d => setOrder(d.order))

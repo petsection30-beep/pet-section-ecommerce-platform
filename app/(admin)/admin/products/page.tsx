@@ -28,6 +28,7 @@ export default function AdminProductsPage() {
       .catch(() => {})
       .finally(() => setLoading(false))
   }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(load, [])
 
   const categories = useMemo(

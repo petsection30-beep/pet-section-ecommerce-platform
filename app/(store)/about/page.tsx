@@ -67,7 +67,7 @@ export default function AboutPage() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-3">Our Story</p>
           <h1 className="text-3xl sm:text-5xl font-bold text-white leading-tight mb-5">
-            Pakistan's Home for<br className="hidden sm:block" /> Happy, Healthy Pets
+            Pakistan&apos;s Home for<br className="hidden sm:block" /> Happy, Healthy Pets
           </h1>
           <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed">
             {brand.storeName} started with a simple belief — every pet deserves the best care,
@@ -131,7 +131,7 @@ export default function AboutPage() {
               </p>
               <p className="text-gray-600 leading-relaxed">
                 Our team includes veterinary advisors, experienced breeders, and passionate pet
-                parents. When you shop with us, you're not just getting a product — you're getting
+                parents. When you shop with us, you&apos;re not just getting a product — you&apos;re getting
                 the backing of people who genuinely care.
               </p>
               <Link
@@ -209,7 +209,7 @@ export default function AboutPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Get in touch</h3>
               <p className="text-gray-600 text-sm leading-relaxed mb-4">
                 Have a question about a product, need advice for your pet, or want to partner with us?
-                We'd love to hear from you.
+                We&apos;d love to hear from you.
               </p>
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-center gap-3">

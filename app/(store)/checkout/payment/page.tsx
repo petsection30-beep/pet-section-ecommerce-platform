@@ -45,6 +45,7 @@ export default function CheckoutPaymentPage() {
     freeDeliveryThreshold: brand.freeDeliveryThreshold,
   })
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true) }, [])
 
   // Pull live payment settings (admin-editable) with brand defaults as fallback.

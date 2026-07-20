@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
             <div className="text-5xl mb-4">📧</div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
             <p className="text-sm text-gray-500 leading-relaxed mb-6">
-              We've sent a password reset link to <span className="font-semibold text-gray-900">{email}</span>.
+              We&apos;ve sent a password reset link to <span className="font-semibold text-gray-900">{email}</span>.
               The link expires in 30 minutes.
             </p>
             <Link href="/login" className="inline-flex h-11 items-center justify-center px-8 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-all">
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
             <div className="text-center mb-8">
               <div className="text-4xl mb-3">🔑</div>
               <h1 className="text-2xl font-bold text-gray-900">Forgot password?</h1>
-              <p className="text-gray-500 text-sm mt-1">Enter your email and we'll send a reset link</p>
+              <p className="text-gray-500 text-sm mt-1">Enter your email and we&apos;ll send a reset link</p>
             </div>
 
             {error && <div className="mb-4 px-4 py-3 rounded-xl bg-danger/10 text-danger text-sm font-medium text-center">{error}</div>}

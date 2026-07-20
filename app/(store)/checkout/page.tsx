@@ -31,9 +31,11 @@ export default function CheckoutAddressPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => {
     if (savedAddress) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         fullName: savedAddress.fullName, phone: savedAddress.phone,
         line1: savedAddress.line1, line2: savedAddress.line2,

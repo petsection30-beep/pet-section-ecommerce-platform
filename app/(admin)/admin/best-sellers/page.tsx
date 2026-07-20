@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import brand from "@/config/brand.config"
 
 type AdminProduct = {
@@ -26,6 +25,7 @@ export default function BestSellersPage() {
       .catch(() => {})
       .finally(() => setLoading(false))
   }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(load, [])
 
   const featured   = all.filter(p => p.isFeatured && p.isActive)

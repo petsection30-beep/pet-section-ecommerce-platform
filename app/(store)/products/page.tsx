@@ -36,11 +36,11 @@ function ProductsInner() {
   const [category, setCategory] = useState("All")
   const [sort, setSort]         = useState(sp.get("sort")?.replace("-", "_") ?? "newest")
   const [inStockOnly, setInStockOnly] = useState(false)
-  const [maxPrice, setMaxPrice] = useState(10000)
+  const [userMaxPrice, setUserMaxPrice] = useState<number | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
 
   useEffect(() => {
-    fetch("/api/products?limit=100")
+    fetch("/api/products?limit=1000")
       .then(r => r.json())
       .then(d => setAll(d.products ?? []))
       .catch(() => {})
@@ -52,21 +52,23 @@ function ProductsInner() {
     [all]
   )
   const priceCeiling = useMemo(
-    () => Math.max(10000, ...all.map(p => p.price)),
+    () => (all.length > 0 ? Math.max(...all.map(p => p.price)) : 10000),
     [all]
   )
 
+  const effectiveMaxPrice = userMaxPrice ?? priceCeiling
+
   const products = useMemo(() => {
-    let list = all.filter(p => p.price <= maxPrice)
+    let list = all.filter(p => p.price <= effectiveMaxPrice)
     if (category !== "All") list = list.filter(p => p.category === category)
     if (inStockOnly)        list = list.filter(p => p.inStock)
     if (sort === "price_asc")  list = [...list].sort((a, b) => a.price - b.price)
     if (sort === "price_desc") list = [...list].sort((a, b) => b.price - a.price)
     if (sort === "rating")     list = [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     return list
-  }, [all, category, sort, inStockOnly, maxPrice])
+  }, [all, category, sort, inStockOnly, effectiveMaxPrice])
 
-  const FilterPanel = () => (
+  const filterPanelContent = (
     <div className="space-y-6">
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-3">Category</h3>
@@ -82,10 +84,10 @@ function ProductsInner() {
 
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-3">Max Price</h3>
-        <input type="range" min={500} max={priceCeiling} step={500} value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} className="w-full accent-primary" />
+        <input type="range" min={500} max={priceCeiling} step={500} value={effectiveMaxPrice} onChange={e => setUserMaxPrice(Number(e.target.value))} className="w-full accent-primary" />
         <div className="flex justify-between text-xs text-gray-500 mt-1">
           <span>{brand.currencySymbol} 500</span>
-          <span className="font-semibold text-gray-900">{brand.currencySymbol} {maxPrice.toLocaleString()}</span>
+          <span className="font-semibold text-gray-900">{brand.currencySymbol} {effectiveMaxPrice.toLocaleString()}</span>
           <span>{brand.currencySymbol} {priceCeiling.toLocaleString()}</span>
         </div>
       </div>
@@ -115,12 +117,12 @@ function ProductsInner() {
         </div>
 
         {filterOpen && (
-          <div className="lg:hidden mt-4 p-5 bg-surface rounded-2xl border border-gray-100 shadow-md"><FilterPanel /></div>
+          <div className="lg:hidden mt-4 p-5 bg-surface rounded-2xl border border-gray-100 shadow-md">{filterPanelContent}</div>
         )}
 
         <div className="mt-6 flex gap-8">
           <aside className="hidden lg:block w-56 shrink-0">
-            <div className="sticky top-24 bg-surface rounded-2xl border border-gray-100 p-5"><FilterPanel /></div>
+            <div className="sticky top-24 bg-surface rounded-2xl border border-gray-100 p-5">{filterPanelContent}</div>
           </aside>
 
           <div className="flex-1 min-w-0">
@@ -140,7 +142,7 @@ function ProductsInner() {
                 <span className="text-6xl">🔍</span>
                 <p className="mt-4 text-lg font-semibold text-gray-700">No products found</p>
                 <p className="text-gray-500 text-sm mt-1">Try adjusting your filters</p>
-                <button onClick={() => { setCategory("All"); setInStockOnly(false); setMaxPrice(priceCeiling) }} className="mt-4 px-5 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90">Reset Filters</button>
+                <button onClick={() => { setCategory("All"); setInStockOnly(false); setUserMaxPrice(null) }} className="mt-4 px-5 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90">Reset Filters</button>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">

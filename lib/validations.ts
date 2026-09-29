@@ -45,7 +45,7 @@ export const addressSchema = z.object({
 export const productSchema = z.object({
   name:         z.string().min(2, "Product name is required"),
   slug:         z.string().min(2).regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens"),
-  description:  z.string().optional(),
+  description:  z.string().optional().nullable(),
   price:        z.number().int().positive("Price must be a positive number"),
   comparePrice: z.number().int().positive().optional().nullable(),
   categoryId:   z.string().min(1, "Category is required"),

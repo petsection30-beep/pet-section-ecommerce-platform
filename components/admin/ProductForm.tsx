@@ -85,13 +85,13 @@ export default function ProductForm({ productId, initial }: { productId?: string
 
     const payload = {
       name:         form.name.trim(),
-      slug:         form.slug || slugify(form.name),
-      description:  form.description.trim() || undefined,
+      slug:         form.slug.trim() || slugify(form.name),
+      description:  form.description.trim() || null,
       categoryId:   form.categoryId,
       price,
       comparePrice: form.comparePrice ? Number(form.comparePrice) : null,
       stock:        form.stock ? Number(form.stock) : 0,
-      imageUrl:     form.imageUrl.trim() || undefined,
+      imageUrl:     form.imageUrl ? form.imageUrl.trim() : "",
       isActive:     form.isActive,
       isFeatured:   form.isFeatured,
     }

@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
 import ProductForm, { type ProductFormInitial } from "@/components/admin/ProductForm"
 
+export const dynamic = "force-dynamic"
+
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
